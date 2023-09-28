@@ -2,14 +2,13 @@
 
 For docker setup we need docker, git and ssh. For non docker setup, we can do away with docker. Also, these scripts have been tested on Ubuntu 20.04.
 
-1. **Clone skynet-ws repo**
+**Run setup-first-time.sh with desired options**
 
-2. **Run setup-first-time.sh with desired options**
+```
+skynet-ws$ ./setup-first-time.sh --docker --ssh --git
+```
+Add the generated ssh key to your github account. You may have to reboot to make docker work.
 
-   ```
-   skynet-ws$ ./setup-first-time.sh --docker --ssh --git
-    ```
-   Add the generated ssh key to your github account. You may have to reboot to make docker work.
 
 # Non-docker SkyNet setup
 
