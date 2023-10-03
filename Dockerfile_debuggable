@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 
-WORKDIR /skynet_ws
+WORKDIR /ws
 
 # TODO use alpine linux (more secure and leaner): https://jfrog.com/devops-tools/article/why-use-ubuntu-as-a-docker-base-image-when-alpine-exists/
 # But there are some challenges: https://unix.stackexchange.com/questions/593549/can-you-install-ubuntu-or-debian-packages-in-alpine
@@ -12,7 +12,9 @@ RUN apt update
 RUN apt install -y --no-install-recommends software-properties-common
 RUN add-apt-repository -y ppa:ubuntu-toolchain-r/test
 # should this be added after installing libjasper-dev ?
-RUN add-apt-repository -y "deb http://security.ubuntu.com/ubuntu xenial-security main"
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+add-apt-repository -y "deb http://security.ubuntu.com/ubuntu xenial-security main"; \
+fi
 # should this be added after installing gfortran ?
 RUN add-apt-repository -y ppa:deadsnakes/ppa 
 
@@ -35,7 +37,6 @@ RUN apt install --fix-missing -y --no-install-recommends \
     libjpeg-dev \
     libpng-dev \
     libtiff-dev \
-    libjasper-dev \
     libavcodec-dev \
     libavformat-dev \
     libswscale-dev \
@@ -58,59 +59,63 @@ RUN apt install --fix-missing -y --no-install-recommends \
     libspdlog-dev \
     libgtest-dev
 
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+apt install --fix-missing -y libjasper-dev; \
+fi
+
 # clone opencv
 RUN git clone https://github.com/opencv/opencv.git
-WORKDIR /skynet_ws/opencv
+WORKDIR /ws/opencv
 RUN git checkout 3.4
     
-WORKDIR /skynet_ws 
+WORKDIR /ws 
 
 # clone opencv_contrib
 RUN git clone https://github.com/opencv/opencv_contrib.git
-WORKDIR /skynet_ws/opencv_contrib/
+WORKDIR /ws/opencv_contrib/
 RUN git checkout 3.4
 
-WORKDIR /skynet_ws 
+WORKDIR /ws 
 
 # clone librealsense
 RUN git clone https://github.com/IntelRealSense/librealsense.git
-WORKDIR /skynet_ws/librealsense
+WORKDIR /ws/librealsense
 RUN git reset --hard 61cf21520b4bb29c2c1074f7bad74a6cfcd93ca3
 
-WORKDIR /skynet_ws 
+WORKDIR /ws 
 
 # clone pangolin
 RUN git config --global advice.detachedHead false
 RUN git clone --recursive https://github.com/stevenlovegrove/Pangolin.git -b v0.8
 
-WORKDIR /skynet_ws 
+WORKDIR /ws 
 
 # build opencv
-WORKDIR /skynet_ws/opencv 
-RUN sudo mkdir -p /skynet_ws/opencv/build
-WORKDIR /skynet_ws/opencv/build
+WORKDIR /ws/opencv 
+RUN sudo mkdir -p /ws/opencv/build
+WORKDIR /ws/opencv/build
 RUN cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=$(python3 -c "import sys; print(sys.prefix)") -D PYTHON3_EXECUTABLE=$(which python3) -D PYTHON_DEFAULT_EXECUTABLE=$(which python3) -D WITH_GTK=ON -D WITH_FFMPEG=ON -D BUILD_EXAMPLES=ON -D INSTALL_C_EXAMPLES=OFF -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -D INSTALL_PYTHON_EXAMPLES=ON -D HAVE_opencv_python3=ON ..
 RUN make -j4
 RUN make install
 
-WORKDIR /skynet_ws 
+WORKDIR /ws 
 
 # build librealsense
-WORKDIR /skynet_ws/librealsense
+WORKDIR /ws/librealsense
 RUN chmod +x ./scripts/setup_udev_rules.sh
 RUN ./scripts/setup_udev_rules.sh
 RUN mkdir build 
-WORKDIR /skynet_ws/librealsense/build
+WORKDIR /ws/librealsense/build
 RUN cmake ../ -DBUILD_EXAMPLES=true -DFORCE_RSUSB_BACKEND=true
 RUN make -j6
 RUN make install
 
-WORKDIR /skynet_ws 
+WORKDIR /ws 
 
 # build pangolin
-WORKDIR /skynet_ws/Pangolin 
+WORKDIR /ws/Pangolin 
 RUN mkdir build 
-WORKDIR /skynet_ws/Pangolin/build
+WORKDIR /ws/Pangolin/build
 RUN cmake ..
 RUN make -j6
 

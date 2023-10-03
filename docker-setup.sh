@@ -32,7 +32,7 @@ echo ""
 
 echo "============ PULLING SkyNet Docker Image ============="
 echo $PWD
-docker pull mahesha999/opencv-realsense:0.3
+docker pull mahesha999/opencv-realsense:0.4
 
 echo ""
 
@@ -49,7 +49,7 @@ docker run -d -v ./ORBSlam2:/ws/ORBSlam2 \
             -v XAUTHORITY=$XAUTHORITY \
             -v /tmp/.X11-unix:/tmp/.X11-unix \
             --env="DISPLAY" --net=host \
-            --privileged --name skynet_container mahesha999/opencv-realsense:0.3
+            --privileged --name skynet_container mahesha999/opencv-realsense:0.4
 
 echo "Container started"
 

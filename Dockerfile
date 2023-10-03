@@ -11,11 +11,14 @@ FROM ubuntu:20.04
 # Set environment variables to avoid interactive prompts during installation
 ENV DEBIAN_FRONTEND=noninteractive
 
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+add-apt-repository -y "deb http://security.ubuntu.com/ubuntu xenial-security main"; \
+fi
+
 # Install dependencies
 RUN apt update && \
     apt install -y --no-install-recommends software-properties-common && \
     add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
-    add-apt-repository -y "deb http://security.ubuntu.com/ubuntu xenial-security main" && \
     add-apt-repository -y ppa:deadsnakes/ppa  && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
@@ -34,7 +37,6 @@ RUN apt update && \
     libjpeg-dev \
     libpng-dev \
     libtiff-dev \
-    libjasper-dev \
     libavcodec-dev \
     libavformat-dev \
     libswscale-dev \
@@ -57,6 +59,10 @@ RUN apt update && \
     libspdlog-dev \
     libgtest-dev && \
     rm -rf /var/lib/apt/lists/*
+
+RUN if [ "$TARGETPLATFORM" = "linux/amd64" ]; then \
+apt install --fix-missing -y libjasper-dev; \
+fi
 
 # Clone repositories
 WORKDIR /ws
