@@ -22,9 +22,13 @@ skynet-ws$ ./non-docker-setup.sh
 # Setting up SkyNet inside docker container
 
 1. **Clone skynet-ws repo**
+   ```
+   $ git clone git@github.com:MaheshAbnave/skynet-ws.git
+   ``` 
 
+2. **Run `xhost +` command on laptop terminal (no inside docker). This allows Pangolin inside docker to connect host’s X server.**
 
-2. **Run docker-setup.sh.**
+3. **Run docker-setup.sh.**
 
    This script first clones ORBSlam2, AKAZESlam and SkyNet repos in local directory (which will be skynet-ws repository directory). Then it pulls docker image. Then it starts docker container and builds above repos inside the container.
 
@@ -133,3 +137,6 @@ skynet-ws$ ./non-docker-setup.sh
     [100%] Linking CXX executable SkyNet
     [100%] Built target SkyNet
     ```
+
+4. **Connecting vscode to docker container and opening SkyNet project folder.**  
+   Refer doc [here](https://docs.google.com/document/d/1ykvDv2OSZA5Ogx6GP3H4sipPBd5UDArKr5ZwziLW2cw/edit?usp=sharing). 
