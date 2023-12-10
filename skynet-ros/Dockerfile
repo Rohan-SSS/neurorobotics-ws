@@ -1,5 +1,6 @@
 FROM mahesha999/opencv-realsense:0.4
 
+
 WORKDIR /ws
 
 # setup timezone
@@ -45,6 +46,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 	ca-certificates \
 	vim \
     git \
+	python3-pip \
     python3-colcon-common-extensions \
     python3-colcon-mixin \
     python3-rosdep \
@@ -78,10 +80,13 @@ RUN cd /root/.vim/bundle && git clone https://github.com/VundleVim/Vundle.vim
 RUN wget -O /root/.vimrc https://edward0im.github.io/files/200917/vimrc1_ycm
 RUN mkdir -p /root/.vim/colors
 RUN wget -O /root/.vim/colors/codedark.vim https://edward0im.github.io/files/200917/codedark.vim
-RUN vim -c BundleInstall -c qall
+RUN vim -c BundleInstall -c qall && ls
+RUN cd /root/.vim/bundle/ && git clone https://github.com/ycm-core/YouCompleteMe && mv YouCompleteMe youcompleteme 
 RUN cd /root/.vim/bundle/youcompleteme/ && python3 ./install.py --force-sudo --clang-completer
 RUN cp  /root/.vim/bundle/youcompleteme/third_party/ycmd/.ycm_extra_conf.py  /root/.vim/
 
+RUN python3 -m pip install msgpack-rpc-python
+RUN python3 -m pip install airsim
 
 ## setup entrypoint
 COPY ./ros_entrypoint.sh /

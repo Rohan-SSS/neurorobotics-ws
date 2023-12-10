@@ -6,6 +6,7 @@ docker run --rm -d -it -v $1/ORBSlam2:/ws/ORBSlam2 \
 			-v $1/src:/ws/ros_ws/src \
             -v $1/scripts/build.sh:/ws/build.sh \
 			-v $1/scripts/docker-setup.sh:/ws/docker-setup.sh \
+			-v ~/.ssh:/root/.ssh \
 			-v /dev:/dev \
     		--device-cgroup-rule "c 81:* rmw" \
     		--device-cgroup-rule "c 189:* rmw" \
