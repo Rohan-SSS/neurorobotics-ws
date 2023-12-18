@@ -20,13 +20,24 @@ tail -n 5 build.log
 
 echo ""
 
+echo "============ BUILDING ORBSlam3 ============="
+cd /ws/ORBSlam3
+echo $PWD
+echo "Logging progress to .../ORBSlam3/build.log"
+#./build.sh &> build.log 
+./build.sh
+#tail -n 5 build.log
+
+echo ""
+
 echo "============ BUILDING SkyNet ============="
 cd /ws/SkyNet
 mkdir -p build && cd build
 echo $PWD
 
 echo "Running cmake. Progress logged in cmake.log file ..."
-cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DPLATFORM=Laptop -DSLAM_MODE=orbslam2 -DINPUT_MODE=video .. &> cmake.log
+#cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DPLATFORM=Laptop -DSLAM_MODE=orbslam3 -DINPUT_MODE=video .. &> cmake.log
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DPLATFORM=Laptop -DSLAMTYPE=ORB3 -Wno-dev .. &> cmake.log
 
 echo "" 
 echo "cmake output (file cmake.log)"
@@ -42,9 +53,10 @@ echo "make output (file make.log)"
 echo "------------------------------------"
 tail -n 5 make.log
 cd ../..
+echo ""
 
 echo "===============Building ROS2 Package=============="
 cd /ws/ros_ws
 rm -rf build install
 cp /ws/SkyNet/build/Sensor/libSensor.so /ws/ros_ws/src/sensors/ext/libSensor.so
-colcon build --symlink-install --cmake-args '-DCMAKE_EXPORT_COMPILE_COMMANDS=1' '-DCMAKE_BUILD_TYPE=Debug' --mixin debug
+colcon build --symlink-install --cmake-args '-DCMAKE_EXPORT_COMPILE_COMMANDS=1' '-DCMAKE_BUILD_TYPE=Debug' '-Wno-dev' --mixin debug

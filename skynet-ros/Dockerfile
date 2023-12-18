@@ -1,6 +1,5 @@
 FROM mahesha999/opencv-realsense:0.4
 
-
 WORKDIR /ws
 
 # setup timezone
@@ -71,7 +70,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # install ros2 packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-foxy-desktop=0.9.2-1* ros-foxy-image-pipeline ros-foxy-ros-testing gdb \
-	ros-foxy-vision-opencv && rm -rf /var/lib/apt/lists/*
+	ros-foxy-vision-opencv libboost-serialization-dev && rm -rf /var/lib/apt/lists/*
 
 # Setup vim for development
 WORKDIR /root
@@ -80,8 +79,8 @@ RUN cd /root/.vim/bundle && git clone https://github.com/VundleVim/Vundle.vim
 RUN wget -O /root/.vimrc https://edward0im.github.io/files/200917/vimrc1_ycm
 RUN mkdir -p /root/.vim/colors
 RUN wget -O /root/.vim/colors/codedark.vim https://edward0im.github.io/files/200917/codedark.vim
-RUN vim -c BundleInstall -c qall && ls
-RUN cd /root/.vim/bundle/ && git clone https://github.com/ycm-core/YouCompleteMe && mv YouCompleteMe youcompleteme 
+RUN vim -c PluginInstall -c qall && ls
+#RUN cd /root/.vim/bundle/ && git clone https://github.com/ycm-core/YouCompleteMe && mv YouCompleteMe youcompleteme 
 RUN cd /root/.vim/bundle/youcompleteme/ && python3 ./install.py --force-sudo --clang-completer
 RUN cp  /root/.vim/bundle/youcompleteme/third_party/ycmd/.ycm_extra_conf.py  /root/.vim/
 
@@ -93,6 +92,23 @@ COPY ./ros_entrypoint.sh /
 
 RUN chmod +x /ros_entrypoint.sh
 WORKDIR /ws
+
+RUN cd opencv && \
+    git checkout 4.x && mkdir build-4 && \
+    cd ..
+
+RUN cd opencv_contrib && \
+    git checkout 4.x && \
+    cd ..
+
+WORKDIR /ws/opencv/build-4
+RUN cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=$(python3 -c "import sys; print(sys.prefix)") -D PYTHON3_EXECUTABLE=$(which python3) -D PYTHON_DEFAULT_EXECUTABLE=$(which python3) -D WITH_GTK=ON -D WITH_FFMPEG=ON -D BUILD_EXAMPLES=ON -D INSTALL_C_EXAMPLES=OFF -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -D INSTALL_PYTHON_EXAMPLES=ON -D HAVE_opencv_python3=ON .. && \
+    make -j4 && \
+    make install
+
+WORKDIR /ws
+RUN ulimit -c unlimited
+RUN sysctl -w kernel.core_pattern="/tmp/%e_core.%p"
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]

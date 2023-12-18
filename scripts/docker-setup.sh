@@ -1,4 +1,17 @@
 
+echo "============ CLONING ORBSlam3 repo ============="
+echo $PWD
+# https://serverfault.com/questions/447028/non-interactive-git-clone-ssh-fingerprint-prompt
+# https://stackoverflow.com/questions/7772190/passing-ssh-options-to-git-clone
+GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/ORBSlam3.git
+cd ORBSlam3
+echo ""
+git fetch origin using_opencv44
+git checkout using_opencv44
+git branch
+cd ..
+
+echo ""
 
 echo "============ CLONING ORBSlam2 repo ============="
 echo $PWD
