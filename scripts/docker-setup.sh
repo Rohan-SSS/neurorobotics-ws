@@ -34,6 +34,11 @@ GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
 echo ""
 
 
+echo "============ CLONING VisionTools repo ============="
+echo $PWD
+GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/VisionTools.git
+
+echo ""
 
 echo "============ CLONING SkyNet repo ============="
 echo $PWD

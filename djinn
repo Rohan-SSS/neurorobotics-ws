@@ -1,4 +1,5 @@
 #!/bin/bash
+
 VERSION=0.0.1
 ROS_VERSION="foxy"
 
@@ -43,6 +44,7 @@ then
 elif [[ "$1" == "init" ]]
 then
 	scripts/start.sh $PWD
+	iexec skynet_container "./build.sh && cd ros_ws && source install/local_setup.bash && cd .."
 
 
 elif [[ "$1" == "build" ]]
@@ -100,7 +102,7 @@ then
 		iexec skynet_container "cd ros_ws && source install/setup.bash && ros2 launch sensors sensors_launch.py"
 	elif [[ "$2" == "skynet" ]]
 	then
-		iexec skynet_container "cd SkyNet/build/ && gdb ./SkyNet"
+		iexec skynet_container "cd SkyNet/build && ./SkyNet"
 	fi
 
 elif [[ "$1" == "down" ]]

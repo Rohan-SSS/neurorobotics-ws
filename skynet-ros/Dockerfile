@@ -110,5 +110,8 @@ WORKDIR /ws
 RUN ulimit -c unlimited
 RUN sysctl -w kernel.core_pattern="/tmp/%e_core.%p"
 
+RUN apt-get update && apt-get install -y python3-tk
+RUN python3 -m pip install fpdf pyproj scikit-learn pandas openpyxl
+
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]
