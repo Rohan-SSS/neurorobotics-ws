@@ -3,8 +3,8 @@ FROM mahesha999/opencv-realsense:0.4
 WORKDIR /ws
 
 # setup timezone
-RUN echo 'Etc/UTC' > /etc/timezone
-RUN ln -snf /usr/share/zoneinfo/Etc/UTC /etc/localtime
+RUN echo 'Asia/Kolkata' > /etc/timezone
+RUN ln -snf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime
 RUN add-apt-repository universe
 RUN apt-get update && \
     apt-get install -q -y --no-install-recommends tzdata && \
@@ -52,7 +52,11 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     python3-vcstool \
     && rm -rf /var/lib/apt/lists/*
 
+#RUN wget https://raw.github.com/ros/foxy/master/rosdep/sources.list.d/20-default.list && \
+#	cp 20-default.list /etc/ros/rosdep/sources.list.d/
+
 # bootstrap rosdep
+RUN c_rehash /etc/ssl/certs
 RUN rosdep init && \
   rosdep update --rosdistro foxy
 

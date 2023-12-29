@@ -20,37 +20,47 @@ then
 	if [[ "$2" == "docker" ]]
 	then
 		platform="linux/arm64/v8,linux/amd64"
-		if [[ -z "$3" ]]
+		echo "$3"
+		if [[ -n "$3" ]]
 		then
+			echo "============ BUILDING Image ============="
 			if [[ "$3" == "base" ]]
 			then
+				echo "============ BUILDING Base Image ============="
 				image="mahesh999/opencv-realsense:0.4"
 				filepath="skynet-base/"
 			elif [[ "$3" == "ros" ]]
 			then
+				echo "============ BUILDING ROS Image ============="
 				image="skynet/dev"
 				filepath="skynet-ros/"
 			fi
+			scripts/docker-build.sh $platform $image $filepath 
 		else
+			echo "============ BUILDING Base Image ============="
+			image="mahesha999/opencv-realsense:0.4"
+			filepath="skynet-base/"
+			scripts/docker-build.sh $platform $image $filepath 
+			echo "============ BUILDING ROS Image ============="
 			image="skynet/dev"
 			filepath="skynet-ros/"
+			scripts/docker-build.sh $platform $image $filepath 
 		fi
-		scripts/docker-build.sh $platform $image $filepath 
 		scripts/start.sh $PWD
-		iexec skynet_container "ls && echo \"here\" && /ws/docker-setup.sh" 
+		iexec skynet_container "ls && echo \"Starting SkyNet Container Setup\" && /ws/scripts/docker-setup.sh" 
 	fi
 
 
 elif [[ "$1" == "init" ]]
 then
 	scripts/start.sh $PWD
-	iexec skynet_container "./build.sh && cd ros_ws && source install/local_setup.bash && cd .."
+	iexec skynet_container "./scripts/build.sh && cd ros_ws && source install/local_setup.bash && cd .."
 
 
 elif [[ "$1" == "build" ]]
 then	
 	clear
-	iexec skynet_container "./build.sh && cd ros_ws && source install/local_setup.bash && cd .."
+	iexec skynet_container "./scripts/build.sh && cd ros_ws && source install/local_setup.bash && cd .."
 
 
 elif [[ "$1" == "cmake" ]]
@@ -85,14 +95,14 @@ then
 	then
 		if [[ "$3" == "AirSimNH" ]]
 		then
-			nohup ./envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen >> airsimnh.log &
+			nohup ./envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$(pwd)/envs/settings.json >> airsimnh.log &
 		
 		elif [[ "$3" == "LandscapeMountain" ]]
 		then
-			nohup ./envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -renderoffscreen >> airsimmountain.log &
+			nohup ./envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -renderoffscreen -settings=$(pwd)/envs/settings.json >> airsimmountain.log &
 		elif [[ "$3" == "Blocks" ]]
 		then
-			nohup ./envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -renderoffscreen >> airsimblocks.log &
+			nohup ./envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -renderoffscreen -settings=$(pwd)/envs/settings.json >> airsimblocks.log &
 		fi
 		sleep 5
 		iexec skynet_container "cd ros_ws/ && source install/setup.bash && ros2 run airsim_lib talker"

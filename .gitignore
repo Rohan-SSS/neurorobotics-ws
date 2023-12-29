@@ -4,3 +4,10 @@ AKAZESlam
 librealsense
 SkyNet
 envs/
+Pangolin/
+VisionTools/
+*__pycache__/
+*libSensor.so
+ros_ws/
+temp/
+*.log

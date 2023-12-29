@@ -46,9 +46,15 @@ GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
 
 echo ""
 
+echo "============ CLONING SkyNet-ROS repo ============="
+echo $PWD
+GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:shandilya1b/skynet-ros.git ros_ws
+
+echo ""
+
 echo "=============== CLONING CV BRIDGE REPO ================="
 echo $PWD
-mkdir -p ros_ws/src
+#mkdir -p ros_ws/src
 cd ros_ws/src/ && git clone https://github.com/ros-perception/vision_opencv.git -b foxy
 
 
@@ -80,7 +86,7 @@ echo ""
 
 
 #docker exec skynet_container /bin/bash -c "/ws/build.sh"
-/ws/build.sh
+#/ws/scripts/build.sh
 
 
 
