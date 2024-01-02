@@ -43,14 +43,33 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN apt-get update && apt-get install --no-install-recommends -y \
     build-essential \
 	ca-certificates \
-	vim \
-    git \
+	libncurses5-dev \
+	libgtk2.0-dev \
+	ruby-dev \
+	lua5.2 \
+	liblua5.2-dev \
+	libperl-dev \
+    git\
+	checkinstall \
 	python3-pip \
     python3-colcon-common-extensions \
     python3-colcon-mixin \
     python3-rosdep \
     python3-vcstool \
     && rm -rf /var/lib/apt/lists/*
+
+RUN git clone https://github.com/vim/vim.git && cd vim && ./configure --with-features=huge \
+            --enable-multibyte \
+            --enable-rubyinterp=yes \
+            --enable-python3interp=yes \
+            --with-python3-config-dir=$(python3-config --configdir) \
+            --enable-perlinterp=yes \
+            --enable-luainterp=yes \
+            --enable-gui=gtk2 \
+            --enable-cscope \
+            --prefix=/usr/local && \
+		make VIMRUNTIMEDIR=/usr/local/share/vim/vim90 && \
+		checkinstall -y
 
 #RUN wget https://raw.github.com/ros/foxy/master/rosdep/sources.list.d/20-default.list && \
 #	cp 20-default.list /etc/ros/rosdep/sources.list.d/
@@ -84,7 +103,7 @@ RUN wget -O /root/.vimrc https://edward0im.github.io/files/200917/vimrc1_ycm
 RUN mkdir -p /root/.vim/colors
 RUN wget -O /root/.vim/colors/codedark.vim https://edward0im.github.io/files/200917/codedark.vim
 RUN vim -c PluginInstall -c qall && ls
-#RUN cd /root/.vim/bundle/ && git clone https://github.com/ycm-core/YouCompleteMe && mv YouCompleteMe youcompleteme 
+#RUN cd /root/.vim/bundle/ && git clone https://github.com/ycm-core/YouCompleteMe youcompleteme 
 RUN cd /root/.vim/bundle/youcompleteme/ && python3 ./install.py --force-sudo --clang-completer
 RUN cp  /root/.vim/bundle/youcompleteme/third_party/ycmd/.ycm_extra_conf.py  /root/.vim/
 
@@ -116,6 +135,7 @@ RUN sysctl -w kernel.core_pattern="/tmp/%e_core.%p"
 
 RUN apt-get update && apt-get install -y python3-tk
 RUN python3 -m pip install fpdf pyproj scikit-learn pandas openpyxl
+RUN apt-get install -y ffmpeg x264 libx264-dev
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]

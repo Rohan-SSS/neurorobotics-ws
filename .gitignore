@@ -11,3 +11,4 @@ VisionTools/
 ros_ws/
 temp/
 *.log
+vim/
