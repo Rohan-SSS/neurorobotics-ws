@@ -67,7 +67,7 @@ apt install --fix-missing -y libjasper-dev; \
 fi
 
 # Clone repositories
-WORKDIR /ws
+WORKDIR /
 
 RUN git clone https://github.com/opencv/opencv.git && \
     cd opencv && \
@@ -88,23 +88,23 @@ RUN git config --global advice.detachedHead false && \
     git clone --recursive https://github.com/stevenlovegrove/Pangolin.git -b v0.8
 
 # Build OpenCV
-WORKDIR /ws/opencv/build
+WORKDIR /opencv/build
 RUN cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=$(python3 -c "import sys; print(sys.prefix)") -D PYTHON3_EXECUTABLE=$(which python3) -D PYTHON_DEFAULT_EXECUTABLE=$(which python3) -D WITH_GTK=ON -D WITH_FFMPEG=ON -D BUILD_EXAMPLES=ON -D INSTALL_C_EXAMPLES=OFF -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -D INSTALL_PYTHON_EXAMPLES=ON -D HAVE_opencv_python3=ON .. && \
     make -j4 && \
     make install
 
 # Build librealsense 
-WORKDIR /ws/librealsense/
+WORKDIR /librealsense/
 RUN chmod +x ./scripts/setup_udev_rules.sh && \
     ./scripts/setup_udev_rules.sh
 
-WORKDIR /ws/librealsense/build
+WORKDIR /librealsense/build
 RUN cmake ../ -DBUILD_EXAMPLES=true -DFORCE_RSUSB_BACKEND=true && \
     make -j6 && \
     make install
 
 # Build Pangolin
-WORKDIR /ws/Pangolin/build
+WORKDIR /Pangolin/build
 RUN cmake .. && \
     make -j6
 

@@ -1,5 +1,7 @@
-export CMAKE_PREFIX_PATH=/ws/Pangolin/build:$CMAKE_PREFIX_PATH
-export CMAKE_PREFIX_PATH=/ws/opencv:$CMAKE_PREFIX_PATH
+#!/bin/bash
+
+export CMAKE_PREFIX_PATH=/Pangolin/build:$CMAKE_PREFIX_PATH
+export CMAKE_PREFIX_PATH=/opencv:$CMAKE_PREFIX_PATH
 
 
 echo "============ BUILDING AKAZESlam ============="
@@ -50,15 +52,5 @@ echo ""
 echo "Running make. Progress logged in make.log file ..."
 make -j6
 
-echo ""
-echo "make output (file make.log)"
-echo "------------------------------------"
-tail -n 5 make.log
 cd ../..
 echo ""
-
-echo "===============Building ROS2 Package=============="
-cd /ws/ros_ws
-rm -rf build install
-cp /ws/SkyNet/build/Sensor/libSensor.so /ws/ros_ws/src/sensors/ext/libSensor.so
-colcon build --symlink-install --cmake-args '-DCMAKE_EXPORT_COMPILE_COMMANDS=1' '-DCMAKE_BUILD_TYPE=Debug' '-Wno-dev' --mixin debug

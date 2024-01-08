@@ -1,7 +1,5 @@
 FROM mahesha999/opencv-realsense:0.4
 
-WORKDIR /ws
-
 # setup timezone
 RUN echo 'Asia/Kolkata' > /etc/timezone
 RUN ln -snf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime
@@ -58,6 +56,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     python3-vcstool \
     && rm -rf /var/lib/apt/lists/*
 
+
+WORKDIR /
 RUN git clone https://github.com/vim/vim.git && cd vim && ./configure --with-features=huge \
             --enable-multibyte \
             --enable-rubyinterp=yes \
@@ -103,9 +103,11 @@ RUN wget -O /root/.vimrc https://edward0im.github.io/files/200917/vimrc1_ycm
 RUN mkdir -p /root/.vim/colors
 RUN wget -O /root/.vim/colors/codedark.vim https://edward0im.github.io/files/200917/codedark.vim
 RUN vim -c PluginInstall -c qall && ls
-#RUN cd /root/.vim/bundle/ && git clone https://github.com/ycm-core/YouCompleteMe youcompleteme 
+RUN cd /root/.vim/bundle/ && rm -rf youcompleteme && git clone https://github.com/ycm-core/YouCompleteMe youcompleteme
+RUN python3 -m pip install regex
+RUN cd /root/.vim/bundle/youcompleteme && git submodule update --init --recursive
 RUN cd /root/.vim/bundle/youcompleteme/ && python3 ./install.py --force-sudo --clang-completer
-RUN cp  /root/.vim/bundle/youcompleteme/third_party/ycmd/.ycm_extra_conf.py  /root/.vim/
+RUN cp /root/.vim/bundle/youcompleteme/third_party/ycmd/.ycm_extra_conf.py  /root/.vim/
 
 RUN python3 -m pip install msgpack-rpc-python
 RUN python3 -m pip install airsim
@@ -114,7 +116,7 @@ RUN python3 -m pip install airsim
 COPY ./ros_entrypoint.sh /
 
 RUN chmod +x /ros_entrypoint.sh
-WORKDIR /ws
+WORKDIR /
 
 RUN cd opencv && \
     git checkout 4.x && mkdir build-4 && \
@@ -124,7 +126,7 @@ RUN cd opencv_contrib && \
     git checkout 4.x && \
     cd ..
 
-WORKDIR /ws/opencv/build-4
+WORKDIR /opencv/build-4
 RUN cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=$(python3 -c "import sys; print(sys.prefix)") -D PYTHON3_EXECUTABLE=$(which python3) -D PYTHON_DEFAULT_EXECUTABLE=$(which python3) -D WITH_GTK=ON -D WITH_FFMPEG=ON -D BUILD_EXAMPLES=ON -D INSTALL_C_EXAMPLES=OFF -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -D INSTALL_PYTHON_EXAMPLES=ON -D HAVE_opencv_python3=ON .. && \
     make -j4 && \
     make install

@@ -54,14 +54,27 @@ then
 elif [[ "$1" == "init" ]]
 then
 	scripts/start.sh $PWD
-	iexec skynet_container "./scripts/build.sh && cd ros_ws && source install/local_setup.bash && cd .."
+	iexec skynet_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
 
 
 elif [[ "$1" == "build" ]]
 then	
 	clear
-	iexec skynet_container "./scripts/build.sh && cd ros_ws && source install/local_setup.bash && cd .."
-
+	if [[ -z "$2" ]]
+	then
+		echo "=========== BUILDING SkyNet And Packages ==========="
+		iexec skynet_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
+	else
+		if [[  "$2" == "skynet" ]]
+		then
+			echo "=========== BUILDING SkyNet ==========="
+			iexec skynet_container "./scripts/build.sh"
+		elif [[  "$2" == "packages" ]]
+		then
+			echo "=========== BUILDING Packages ==========="
+			iexec skynet_container "./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
+		fi
+	fi
 
 elif [[ "$1" == "cmake" ]]
 then
