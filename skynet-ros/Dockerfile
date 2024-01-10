@@ -58,7 +58,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 
 
 WORKDIR /
-RUN git clone https://github.com/vim/vim.git && cd vim && ./configure --with-features=huge \
+RUN git clone https://github.com/vim/vim.git && cd vim && git checkout 6a950da &&  ./configure --with-features=huge \
             --enable-multibyte \
             --enable-rubyinterp=yes \
             --enable-python3interp=yes \
