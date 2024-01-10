@@ -9,4 +9,4 @@ docker run --rm -d -it -v $1:/ws/ \
             -v XAUTHORITY=$XAUTHORITY \
             -v /tmp/.X11-unix:/tmp/.X11-unix \
             --env="DISPLAY" --net=host \
-            --privileged --name skynet_container skynet/dev bash
+            --privileged --name $2 $3 bash
