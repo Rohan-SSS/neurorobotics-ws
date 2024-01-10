@@ -34,6 +34,11 @@ then
 				echo "============ BUILDING ROS Image ============="
 				image="skynet/dev"
 				filepath="skynet-ros/"
+			elif [[ "$3" == "vision-tools" ]]
+			then
+				echo "============ BUILDING Vision Tools Image ============="
+				image="vision-tools/dev"
+				filepath="vision-tools/"
 			fi
 			scripts/docker-build.sh $platform $image $filepath 
 		else
@@ -46,15 +51,25 @@ then
 			filepath="skynet-ros/"
 			scripts/docker-build.sh $platform $image $filepath 
 		fi
-		scripts/start.sh $PWD
+		scripts/start.sh $PWD skynet_container skynet/dev
+		scripts/start.sh $PWD vision_tools_container vision-tools/dev
 		iexec skynet_container "ls && echo \"Starting SkyNet Container Setup\" && /ws/scripts/docker-setup.sh" 
 	fi
 
 
 elif [[ "$1" == "init" ]]
 then
-	scripts/start.sh $PWD
-	iexec skynet_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
+	if [[ -n "$2" ]]
+	then
+		if [[ "$2" == "vision-tools"  ]]
+		then
+			scripts/start.sh $PWD vision_tools_container vision-tools/dev
+		fi
+	else
+		scripts/start.sh $PWD skynet_container skynet/dev
+		scripts/start.sh $PWD vision_tools_container vision-tools/dev
+		iexec skynet_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
+	fi
 
 
 elif [[ "$1" == "build" ]]
@@ -116,10 +131,18 @@ then
 		elif [[ "$3" == "Blocks" ]]
 		then
 			nohup ./envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -renderoffscreen -settings=$(pwd)/envs/settings.json >> airsimblocks.log &
+		elif [[ "$3" == "Africa" ]]
+		then
+			nohup ./envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh  -renderoffscreen -settings=$(pwd)/envs/settings.json >> airsimafrica.log &
 		fi
 		sleep 5
 		iexec skynet_container "cd ros_ws/ && source install/setup.bash && ros2 run airsim_lib talker"
-		kill $(ps -e | grep "$3" | awk '{print $1}')
+		name="$3"
+		if [[ "$3" == "LandscapeMountain"  ]]
+		then
+			name="LandscapeMounta"
+		fi
+		kill $(ps -e | grep "$name" | awk '{print $name}')
 	elif [[ "$2" == "sensors" ]]
 	then
 		iexec skynet_container "cd ros_ws && source install/setup.bash && ros2 launch sensors sensors_launch.py"
