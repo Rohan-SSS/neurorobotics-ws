@@ -3,6 +3,7 @@
 export CMAKE_PREFIX_PATH=/Pangolin/build:$CMAKE_PREFIX_PATH
 export CMAKE_PREFIX_PATH=/opencv:$CMAKE_PREFIX_PATH
 
+echo "build mode: $1"
 
 echo "============ BUILDING AKAZESlam ============="
 cd /ws/AKAZESlam
@@ -33,6 +34,45 @@ echo "Logging progress to .../ORBSlam3/build.log"
 #tail -n 5 build.log
 
 echo ""
+
+if [[ "$1" == "airsim"  ]]
+then
+	echo "============ BUILDING SkyNet SITL DEPENDENCIES ============="
+	cd /ws/ext
+	echo "============ BUILDING Memory Vendor ============="
+	cd foonathan_memory_vendor
+	ls
+	rm -rf build
+	mkdir build
+	cd build
+	ls 
+	cmake ..
+	cmake --build . --target install
+	cd ../../
+
+	echo "============ BUILDING Fast-CDR ============="
+	
+	cd Fast-CDR
+	rm -rf build && mkdir build && cd build
+	cmake ..
+	cmake --build . --target install
+	cd ../../
+
+	echo "============ BUILDING Fast-RTPS ============="
+	cd Fast-RTPS
+	rm -rf build && mkdir -p build && cd build
+	cmake ..
+	cmake --build . --target install
+	cd ../../
+
+	echo "============ BUILDING Micro-RTPS Agent ============="
+	cd micrortps_agent
+	rm -rf build && mkdir build && cd build
+	cmake ..
+	make
+	cd ../../../
+
+fi
 
 echo "============ BUILDING SkyNet ============="
 cd /ws/SkyNet

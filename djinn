@@ -4,7 +4,7 @@ VERSION=0.0.1
 ROS_VERSION="foxy"
 
 iexec(){
-            time docker container exec -it "$1" /bin/bash -l -c "source /opt/ros/${ROS_VERSION}/setup.bash && $2"
+            time docker container exec -it "$1" /bin/bash -l -c "$2"
         }
 
 
@@ -20,6 +20,7 @@ then
 	if [[ "$2" == "docker" ]]
 	then
 		platform="linux/arm64/v8,linux/amd64"
+		mode="base"
 		echo "$3"
 		if [[ -n "$3" ]]
 		then
@@ -29,16 +30,28 @@ then
 				echo "============ BUILDING Base Image ============="
 				image="mahesh999/opencv-realsense:0.4"
 				filepath="skynet-base/"
+				container_name="base_container"
 			elif [[ "$3" == "ros" ]]
 			then
 				echo "============ BUILDING ROS Image ============="
 				image="skynet/dev"
 				filepath="skynet-ros/"
+				container_name="skynet_container"
+				mode="ros"
+			elif [[ "$3" == "airsim" ]]
+			then
+				echo "============ BUILDING ROS Image ============="
+				image="skynet/airsim"
+				filepath="skynet-airsim/"
+				container_name="airsim_container"
+				mode="airsim"
 			elif [[ "$3" == "vision-tools" ]]
 			then
 				echo "============ BUILDING Vision Tools Image ============="
 				image="vision-tools/dev"
 				filepath="vision-tools/"
+				container_name="vision_tools_container"
+				mode="vision-tools"
 			fi
 			scripts/docker-build.sh $platform $image $filepath 
 		else
@@ -50,20 +63,27 @@ then
 			image="skynet/dev"
 			filepath="skynet-ros/"
 			scripts/docker-build.sh $platform $image $filepath 
+			container_name="skynet_container"
+			mode="ros"
 		fi
-		scripts/start.sh $PWD skynet_container skynet/dev
-		scripts/start.sh $PWD vision_tools_container vision-tools/dev
-		iexec skynet_container "ls && echo \"Starting SkyNet Container Setup\" && /ws/scripts/docker-setup.sh" 
+		scripts/start.sh $PWD $container_name $image
+		iexec $container_name "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh ${mode}" 
 	fi
 
 
 elif [[ "$1" == "init" ]]
 then
+	mode="ros"
 	if [[ -n "$2" ]]
 	then
 		if [[ "$2" == "vision-tools"  ]]
 		then
 			scripts/start.sh $PWD vision_tools_container vision-tools/dev
+		elif [[ "$2" == "airsim"  ]]
+		then
+			echo "=============== Initialising AIRSIM SITL Container ================"
+			scripts/start.sh $PWD airsim_container skynet/airsim
+			iexec airsim_container "./scripts/build.sh $2"
 		fi
 	else
 		scripts/start.sh $PWD skynet_container skynet/dev
@@ -88,6 +108,10 @@ then
 		then
 			echo "=========== BUILDING Packages ==========="
 			iexec skynet_container "./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
+		elif [[  "$2" == "airsim" ]]
+		then
+			echo "=========== BUILDING SITL ==========="
+			iexec airsim_container "./scripts/build.sh $2"
 		fi
 	fi
 
@@ -149,11 +173,36 @@ then
 	elif [[ "$2" == "skynet" ]]
 	then
 		iexec skynet_container "cd SkyNet/build && ./SkyNet"
+	elif [[ "$2" == "sitl" ]]
+	then
+		if [[ "$3" == "AirSimNH" ]]
+		then
+			nohup ./envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$(pwd)/envs/settings.json >> airsimnh.log &
+		
+		elif [[ "$3" == "LandscapeMountain" ]]
+		then
+			nohup ./envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -renderoffscreen -settings=$(pwd)/envs/settings.json >> airsimmountain.log &
+		elif [[ "$3" == "Blocks" ]]
+		then
+			nohup ./envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -renderoffscreen -settings=$(pwd)/envs/settings.json >> airsimblocks.log &
+		elif [[ "$3" == "Africa" ]]
+		then
+			nohup ./envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh  -renderoffscreen -settings=$(pwd)/envs/settings.json >> airsimafrica.log &
+		fi
+		sleep 5
+		iexec airsim_container "cd ext/micrortps_agent/build && rm run.log && nohup ./micrortps_agent -t UDP >> run.log &"
+		iexec airsim_container "cd SkyNet/build && rm run.log && nohup ./SkyNet >> run.log &"
+		name="$3"
+		if [[ "$3" == "LandscapeMountain"  ]]
+		then
+			name="LandscapeMounta"
+		fi
+		kill $(ps -e | grep "$name" | awk '{print $name}')
 	fi
 
 elif [[ "$1" == "down" ]]
 then
-	docker stop skynet_container
+	docker stop skynet_container airsim_container vision_tools_container
 
 
 elif [[ "$1" == "ps" ]]

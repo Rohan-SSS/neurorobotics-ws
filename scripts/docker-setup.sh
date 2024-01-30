@@ -3,7 +3,12 @@ echo "============ CLONING ORBSlam3 repo ============="
 echo $PWD
 # https://serverfault.com/questions/447028/non-interactive-git-clone-ssh-fingerprint-prompt
 # https://stackoverflow.com/questions/7772190/passing-ssh-options-to-git-clone
-GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/ORBSlam3.git
+if [[ ! -d "ORBSlam3" ]]
+then
+	GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/ORBSlam3.git
+else
+	echo "ORBSlam3 already present"
+fi
 cd ORBSlam3
 echo ""
 git fetch origin using_opencv44
@@ -17,10 +22,20 @@ echo "============ CLONING ORBSlam2 repo ============="
 echo $PWD
 # https://serverfault.com/questions/447028/non-interactive-git-clone-ssh-fingerprint-prompt
 # https://stackoverflow.com/questions/7772190/passing-ssh-options-to-git-clone
-GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/ORBSlam2.git
+if [[ ! -d "ORBSlam2" ]]
+then
+	GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/ORBSlam2.git
+else
+	echo "ORBSlam2 already present"
+fi
 cd ORBSlam2
-echo ""
-git checkout main_v1
+echo "build mode: $1"
+if [[ "$1" == "airsim" ]]
+then
+	git checkout vaibhav_covariance
+else
+	git checkout main_v1
+fi
 git branch
 cd ..
 
@@ -29,42 +44,111 @@ echo ""
 
 echo "============ CLONING AKAZESlam repo ============="
 echo $PWD
-GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/AKAZESlam.git
+if [[ ! -d "AKAZESlam" ]]
+then
+	GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/AKAZESlam.git
+else
+	echo "AKAZESlam already present"
+fi
 
 echo ""
 
 
 echo "============ CLONING VisionTools repo ============="
 echo $PWD
-GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/VisionTools.git
+if [[ ! -d "VisionTools" ]]
+then
+	GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/VisionTools.git
+else
+	echo "VisionTools already present"
+fi
+
+echo ""
+
+if [[ "$1" == "airsim" ]]
+then
+	mkdir -p ext && cd ext/
+	if [[ ! -d "Fast-CDR" ]]
+	then
+		git clone https://github.com/eProsima/Fast-CDR.git
+		cd Fast-CDR
+		git checkout c69dff2
+		cd ../
+	else
+		echo "Fast-CDR already present"
+	fi
+	if [[ ! -d "foonathan_memory_vendor" ]]
+	then
+		git clone https://github.com/eProsima/foonathan_memory_vendor.git
+	else
+		echo "foonathan_memory_vendor already present"
+	fi
+	echo "=============== CLONING FAST-RTPS REPOS ================="
+	if [[ ! -d "Fast-RTPS" ]]
+	then
+		GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/Fast-RTPS.git
+	else
+		echo "Fast-RTPS already present"
+	fi
+	cd /ws
+fi
 
 echo ""
 
 echo "============ CLONING SkyNet repo ============="
 echo $PWD
-GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/SkyNet.git
+if [[ ! -d "SkyNet" ]]
+then
+	GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/SkyNet.git
+else
+	echo "SkyNet already present"
+fi
+cd SkyNet
+if [[ "$1" == "airsim" ]]
+then
+	git checkout main_v1_airsim
+else
+	git checkout main_v1
+fi
+cd ../
 
 echo ""
 
-echo "============ CLONING SkyNet-ROS repo ============="
-echo $PWD
-GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:shandilya1b/skynet-ros.git ros_ws
+if [[ "$1" == "airsim" ]]
+then
+	echo "Not setting up ros dependencies"
+else
+	echo "============ CLONING SkyNet-ROS repo ============="
+	echo $PWD
+	if [[ ! -d "ros_ws" ]]
+	then
+		GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:shandilya1b/skynet-ros.git ros_ws
+	else
+		echo "ROS Workspace already present"
+	fi
 
-echo ""
+	echo ""
 
-echo "=============== CLONING CV BRIDGE REPO ================="
-echo $PWD
-#mkdir -p ros_ws/src
-cd ros_ws/src/ && git clone https://github.com/ros-perception/vision_opencv.git -b foxy
+	echo "=============== CLONING CV BRIDGE REPO ================="
+	echo $PWD
+	#mkdir -p ros_ws/src
+	cd ros_ws/src/
+	if [[ ! -d "vision_opencv" ]]
+	then
+		git clone https://github.com/ros-perception/vision_opencv.git -b foxy
+	else
+		echo "Vision OpenCV already present"
+	fi
+	cd ../../
 
+	# echo "============ PULLING SkyNet Docker Image ============="
+	# echo $PWD
+	#docker pull mahesha999/opencv-realsense:0.4
 
-echo "============ PULLING SkyNet Docker Image ============="
-echo $PWD
-#docker pull mahesha999/opencv-realsense:0.4
+	echo ""
+fi
 
-echo ""
-
-
+echo "Done Setup"
 
 #echo "============ CREATING SkyNet Docker Container ============="
 #echo $PWD
