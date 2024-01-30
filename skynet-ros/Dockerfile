@@ -44,7 +44,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-foxy-ros-core=0.9.2-1* \
     && rm -rf /var/lib/apt/lists/*
 
-
 #RUN wget https://raw.github.com/ros/foxy/master/rosdep/sources.list.d/20-default.list && \
 #	cp 20-default.list /etc/ros/rosdep/sources.list.d/
 

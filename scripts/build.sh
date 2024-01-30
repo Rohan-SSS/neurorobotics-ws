@@ -81,7 +81,7 @@ echo $PWD
 
 echo "Running cmake. Progress logged in cmake.log file ..."
 #cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DPLATFORM=Laptop -DSLAM_MODE=orbslam3 -DINPUT_MODE=video .. &> cmake.log
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DPLATFORM=Laptop -DSLAMTYPE=ORB2 .. &> cmake.log
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DPLATFORM=Laptop -DSLAMTYPE=ORB3 .. &> cmake.log
 
 echo "" 
 echo "cmake output (file cmake.log)"
