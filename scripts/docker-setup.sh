@@ -11,6 +11,7 @@ else
 fi
 cd ORBSlam3
 echo ""
+git config --global --add safe.directory /ws/ORBSlam3
 git fetch origin using_opencv44
 git checkout using_opencv44
 git branch
@@ -29,6 +30,7 @@ else
 	echo "ORBSlam2 already present"
 fi
 cd ORBSlam2
+git config --global --add safe.directory /ws/ORBSlam2
 echo "build mode: $1"
 if [[ "$1" == "airsim" ]]
 then
@@ -50,6 +52,9 @@ then
 else
 	echo "AKAZESlam already present"
 fi
+cd AKAZESlam
+git config --global --add safe.directory /ws/AKAZESlam
+cd ../
 
 echo ""
 
@@ -62,6 +67,9 @@ then
 else
 	echo "VisionTools already present"
 fi
+cd VisionTools
+git config --global --add safe.directory /ws/VisionTools
+cd ../
 
 echo ""
 
@@ -104,6 +112,7 @@ else
 	echo "SkyNet already present"
 fi
 cd SkyNet
+git config --global --add safe.directory /ws/SkyNet
 if [[ "$1" == "airsim" ]]
 then
 	git checkout main_v1_airsim

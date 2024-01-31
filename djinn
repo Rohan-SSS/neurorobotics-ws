@@ -7,6 +7,9 @@ iexec(){
             time docker container exec -it "$1" /bin/bash -l -c "$2"
         }
 
+iexec_ros(){
+			time docker container exec -it "$1" /bin/bash -l -c "source /opt/ros/${ROS_VERSION}/setup.bash && $2"
+        }
 
 
 if [[ "$1" == "install" ]]
@@ -28,23 +31,23 @@ then
 			if [[ "$3" == "base" ]]
 			then
 				echo "============ BUILDING Base Image ============="
-				image="mahesh999/opencv-realsense:0.4"
+				image="skynet/base"
 				filepath="skynet-base/"
-				container_name="base_container"
+				container_name="skynet_container"
 			elif [[ "$3" == "ros" ]]
 			then
 				echo "============ BUILDING ROS Image ============="
-				image="skynet/dev"
+				image="skynet/ros"
 				filepath="skynet-ros/"
-				container_name="skynet_container"
+				container_name="ros_container"
 				mode="ros"
 			elif [[ "$3" == "airsim" ]]
 			then
 				echo "============ BUILDING ROS Image ============="
-				image="skynet/airsim"
-				filepath="skynet-airsim/"
+				image="skynet/base"
+				filepath="skynet-base/"
 				container_name="airsim_container"
-				mode="airsim"
+				mode="ros"
 			elif [[ "$3" == "vision-tools" ]]
 			then
 				echo "============ BUILDING Vision Tools Image ============="
@@ -56,14 +59,14 @@ then
 			scripts/docker-build.sh $platform $image $filepath 
 		else
 			echo "============ BUILDING Base Image ============="
-			image="mahesha999/opencv-realsense:0.4"
+			image="skynet/base"
 			filepath="skynet-base/"
 			scripts/docker-build.sh $platform $image $filepath 
 			echo "============ BUILDING ROS Image ============="
-			image="skynet/dev"
+			image="skynet/ros"
 			filepath="skynet-ros/"
 			scripts/docker-build.sh $platform $image $filepath 
-			container_name="skynet_container"
+			container_name="ros_container"
 			mode="ros"
 		fi
 		scripts/start.sh $PWD $container_name $image
@@ -79,18 +82,27 @@ then
 		if [[ "$2" == "vision-tools"  ]]
 		then
 			scripts/start.sh $PWD vision_tools_container vision-tools/dev
+		elif [[ "$2" == "base"  ]]
+		then
+			echo "=============== Initialising SkyNet Container ================"
+			scripts/start.sh $PWD skynet_container skynet/base
+			iexec skynet_container "./scripts/build.sh $2"
 		elif [[ "$2" == "airsim"  ]]
 		then
 			echo "=============== Initialising AIRSIM SITL Container ================"
 			scripts/start.sh $PWD airsim_container skynet/airsim
 			iexec airsim_container "./scripts/build.sh $2"
+		elif [[ "$2" == "ros"  ]]
+		then
+			echo "=============== Initialising SkyNet-ROS Container ================"
+			scripts/start.sh $PWD ros_container skynet/ros
+			iexec_ros ros_container "./scripts/build.sh $2"
 		fi
 	else
-		scripts/start.sh $PWD skynet_container skynet/dev
+		scripts/start.sh $PWD ros_container skynet/ros
 		scripts/start.sh $PWD vision_tools_container vision-tools/dev
-		iexec skynet_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
+		iexec_ros ros_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
 	fi
-
 
 elif [[ "$1" == "build" ]]
 then	
@@ -98,16 +110,20 @@ then
 	if [[ -z "$2" ]]
 	then
 		echo "=========== BUILDING SkyNet And Packages ==========="
-		iexec skynet_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
+		iexec_ros ros_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
 	else
 		if [[  "$2" == "skynet" ]]
 		then
 			echo "=========== BUILDING SkyNet ==========="
 			iexec skynet_container "./scripts/build.sh"
-		elif [[  "$2" == "packages" ]]
+		elif [[  "$2" == "skynet-ros" ]]
+		then
+			echo "=========== BUILDING SkyNet-ROS ==========="
+			iexec_ros ros_container "./scripts/build.sh"
+		elif [[  "$2" == "ros-packages" ]]
 		then
 			echo "=========== BUILDING Packages ==========="
-			iexec skynet_container "./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
+			iexec_ros ros_container "./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
 		elif [[  "$2" == "airsim" ]]
 		then
 			echo "=========== BUILDING SITL ==========="
@@ -115,30 +131,11 @@ then
 		fi
 	fi
 
-elif [[ "$1" == "cmake" ]]
-then
-	package="SkyNet"
-	if [[ -z "$2" ]]
-	then
-		package="$2"
-	fi
-	iexec skynet_container "cd /ws/$package/build && cmake -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DCMAKE_BUILD_TYPE=Debug -DPLATFORM=Laptop -DSLAM_MODE=orbslam2 -DINPUT_MODE=video .."
-
-
-elif [[ "$1" ==  "make" ]]
-then
-	package="SkyNet"
-	if [[ -z "$2" ]]
-	then
-		package="$2"
-	fi
-	iexec skynet_container "cd /ws/$package/build && make -j4"
-
-
 elif [[  "$1" == "exec" ]]
 then
 	# djinn exec "cd ros_ws/src/ && ros2 pkg create --build-type ament_cmake Sensors" for creating ros2 packages
-	iexec skynet_container "$2"
+	# echo "${2}_container"
+	iexec "${2}_container" "$3"
 
 elif [[  "$1" == "start" ]]
 then
@@ -160,7 +157,7 @@ then
 			nohup ./envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh  -renderoffscreen -settings=$(pwd)/envs/settings.json >> airsimafrica.log &
 		fi
 		sleep 5
-		iexec skynet_container "cd ros_ws/ && source install/setup.bash && ros2 run airsim_lib talker"
+		iexec_ros ros_container "cd ros_ws/ && source install/setup.bash && ros2 run airsim_lib talker"
 		name="$3"
 		if [[ "$3" == "LandscapeMountain"  ]]
 		then
@@ -169,7 +166,7 @@ then
 		kill $(ps -e | grep "$name" | awk '{print $name}')
 	elif [[ "$2" == "sensors" ]]
 	then
-		iexec skynet_container "cd ros_ws && source install/setup.bash && ros2 launch sensors sensors_launch.py"
+		iexec_ros ros_container "cd ros_ws && source install/setup.bash && ros2 launch sensors sensors_launch.py"
 	elif [[ "$2" == "skynet" ]]
 	then
 		iexec skynet_container "cd SkyNet/build && ./SkyNet"
@@ -202,7 +199,7 @@ then
 
 elif [[ "$1" == "down" ]]
 then
-	docker stop skynet_container airsim_container vision_tools_container
+	docker stop ros_container skynet_container airsim_container vision_tools_container
 
 
 elif [[ "$1" == "ps" ]]

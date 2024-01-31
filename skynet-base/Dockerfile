@@ -173,6 +173,7 @@ RUN cd /root/.vim/bundle/youcompleteme && git submodule update --init --recursiv
 RUN cd /root/.vim/bundle/youcompleteme/ && python3 ./install.py --force-sudo --clang-completer
 RUN cp /root/.vim/bundle/youcompleteme/third_party/ycmd/.ycm_extra_conf.py  /root/.vim/
 
+RUN apt-get update && apt-get install -y libasio-dev libtinyxml2-dev libsuitesparse-dev libopenexr24:amd64
 WORKDIR /ws
 
 ENTRYPOINT ["tail", "-f", "/dev/null"]
