@@ -32,7 +32,7 @@ fi
 cd ORBSlam2
 git config --global --add safe.directory /ws/ORBSlam2
 echo "build mode: $1"
-if [[ "$1" == "airsim" ]]
+if [[ "$1" == "sitl" ]]
 then
 	git checkout vaibhav_covariance
 else
@@ -73,7 +73,7 @@ cd ../
 
 echo ""
 
-if [[ "$1" == "airsim" ]]
+if [[ "$1" == "sitl" ]]
 then
 	mkdir -p ext && cd ext/
 	if [[ ! -d "Fast-CDR" ]]
@@ -113,7 +113,7 @@ else
 fi
 cd SkyNet
 git config --global --add safe.directory /ws/SkyNet
-if [[ "$1" == "airsim" ]]
+if [[ "$1" == "sitl" ]]
 then
 	git checkout main_v1_airsim
 else
@@ -123,7 +123,7 @@ cd ../
 
 echo ""
 
-if [[ "$1" == "airsim" ]]
+if [[ "$1" == "sitl" ]]
 then
 	echo "Not setting up ros dependencies"
 else
