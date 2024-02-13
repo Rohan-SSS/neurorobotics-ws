@@ -150,21 +150,21 @@ then
 	then
 		if [[ "$3" == "AirSimNH" ]]
 		then
-			nohup ./envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$(pwd)/envs/settings-no-px4.json >> airsimnh.log &
+			nohup ./envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$(pwd)/config/settings-no-px4.json >> airsimnh.log &
 		
 		elif [[ "$3" == "LandscapeMountain" ]]
 		then
-			nohup ./envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -renderoffscreen -settings=$(pwd)/envs/settings-no-px4.json >> airsimmountain.log &
+			nohup ./envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -renderoffscreen -settings=$(pwd)/config/settings-no-px4.json >> airsimmountain.log &
 		elif [[ "$3" == "ZhangJiajie" ]]
 		then
-			nohup ./envs/ZhangJiajie/LinuxNoEditor/ZhangJiajie.sh -renderoffscreen -settings=$(pwd)/envs/settings-no-px4.json >> airsimmountain.log &
+			nohup ./envs/ZhangJiajie/LinuxNoEditor/ZhangJiajie.sh -renderoffscreen -settings=$(pwd)/config/settings-no-px4.json >> airsimmountain.log &
 		elif [[ "$3" == "Blocks" ]]
 		then
-			nohup ./envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -renderoffscreen -settings=$(pwd)/envs/settings-no-px4.json >> airsimblocks.log &
+			nohup ./envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -renderoffscreen -settings=$(pwd)/config/settings-no-px4.json >> airsimblocks.log &
 		elif [[ "$3" == "Africa" ]]
 		then
 			echo "Starting Africa"
-			nohup ./envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh  -WINDOWED -ResX=640 -ResY=480 -settings=$(pwd)/envs/settings-africa.json >> airsimafrica.log &
+			nohup ./envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh  -WINDOWED -ResX=640 -ResY=480 -settings=$(pwd)/config/settings-africa.json >> airsimafrica.log &
 		fi
 		sleep 5
 		iexec_ros ros_container "cd ros_ws/ && source install/setup.bash && ros2 run airsim_lib talker"
@@ -185,20 +185,20 @@ then
 		echo "========== Starting AIRSIM =========="
 		if [[ "$3" == "AirSimNH" ]]
 		then
-			nohup ./envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$(pwd)/envs/settings.json >> airsimnh.log &
+			nohup ./envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$(pwd)/config/settings.json >> airsimnh.log &
 		
 		elif [[ "$3" == "LandscapeMountain" ]]
 		then
-			nohup ./envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -WINDOWED -ResX=640 -ResY=480 -settings=$(pwd)/envs/settings.json >> airsimmountain.log &
+			nohup ./envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -WINDOWED -ResX=640 -ResY=480 -settings=$(pwd)/config/settings.json >> airsimmountain.log &
 		elif [[ "$3" == "ZhangJiajie" ]]
 		then
-			nohup ./envs/ZhangJiajie/LinuxNoEditor/ZhangJiajie.sh -WINDOWED -ResX=640 -ResY=480 -settings=$(pwd)/envs/settings.json >> airsimzhang.log &
+			nohup ./envs/ZhangJiajie/LinuxNoEditor/ZhangJiajie.sh -WINDOWED -ResX=640 -ResY=480 -settings=$(pwd)/config/settings.json >> airsimzhang.log &
 		elif [[ "$3" == "Blocks" ]]
 		then
-			nohup ./envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -renderoffscreen -settings=$(pwd)/envs/settings.json >> airsimblocks.log &
+			nohup ./envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -renderoffscreen -settings=$(pwd)/config/settings.json >> airsimblocks.log &
 		elif [[ "$3" == "Africa" ]]
 		then
-			nohup ./envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh -WINDOWED -ResX=640 -ResY=480  -settings=$(pwd)/envs/settings-africa.json >> airsimafrica.log &
+			nohup ./envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh -WINDOWED -ResX=640 -ResY=480  -settings=$(pwd)/config/settings-africa.json >> airsimafrica.log &
 		fi
 		echo "========== Starting BFX =========="
 		bfx_cmd="\"cd ext/bfx/BFX/ && make px4_sitl_rtps none\""

@@ -1,0 +1,40 @@
+{
+  "SettingsVersion": 1.2,
+  "SimMode": "Multirotor",
+  "LocalHostIp": "127.0.0.0",
+  "ApiServerPort": 41452,
+  "CameraDefaults": {
+    "CaptureSettings": [
+      {   
+        "ImageType": 0,
+        "Width": 640,
+        "Height": 480 
+      },  
+      {   
+        "ImageType": 1,
+        "Width": 640,                                                                                                                                                                                                                                                                                                        
+        "Height": 480 
+      },  
+      {   
+        "ImageType": 2,
+        "Width": 640,
+        "Height": 480 
+      },  
+      {   
+        "ImageType": 7,
+        "Width": 640,
+        "Height": 480 
+      }   
+    ]   
+  },
+  "Vehicles": {
+	"SimpleFlight": {
+		"VehicleType": "SimpleFlight"
+	}
+  },
+  "OriginGeopoint": {
+	"Latitude": 19.1052665,
+	"Longitude": 73.0158081,
+	"Altitude": 25
+  }
+}
