@@ -36,7 +36,6 @@ iexec_ros(){
 
 elif [[ "$1" == "setup" ]]
 then
-	mkdir -p $PWD/src
 	if [[ "$2" == "docker" ]]
 	then
 		platform="linux/arm64/v8,linux/amd64"
@@ -49,49 +48,47 @@ then
 			then
 				echo "============ BUILDING Base Image ============="
 				image="skynet/base"
-				filepath="skynet-base/"
+				filepath="$WS_PATH/skynet-base/"
 				container_name="skynet_container"
 			elif [[ "$3" == "ros" ]]
 			then
 				echo "============ BUILDING ROS Image ============="
 				image="skynet/ros"
-				filepath="skynet-ros/"
+				filepath="$WS_PATH/skynet-ros/"
 				container_name="ros_container"
 				mode="ros"
 			elif [[ "$3" == "sitl" ]]
 			then
 				echo "============ BUILDING SITL Image ============="
 				image="skynet/base"
-				filepath="skynet-base/"
+				filepath="$WS_PATH/skynet-base/"
 				container_name="sitl_container"
 				mode="sitl"
 			elif [[ "$3" == "vision-tools" ]]
 			then
 				echo "============ BUILDING Vision Tools Image ============="
 				image="vision-tools/dev"
-				filepath="vision-tools/"
+				filepath="$WS_PATH/vision-tools/"
 				container_name="vision_tools_container"
 				mode="vision-tools"
 			fi
 			# scripts/docker-build.sh $platform $image $filepath 
 			if [[ "${mode}" == "sitl" ]]
 			then
-				scripts/docker-build.sh $platform bfx/test ext/bfx 
+				$WS_PATH/scripts/docker-build.sh $platform bfx/test $WS_PATH/ext/bfx 
 			fi
 		else
 			echo "============ BUILDING Base Image ============="
 			image="skynet/base"
 			filepath="skynet-base/"
-			scripts/docker-build.sh $platform $image $filepath 
+			$WS_PATH/scripts/docker-build.sh $platform $image $filepath 
 			echo "============ BUILDING ROS Image ============="
 			image="skynet/ros"
 			filepath="skynet-ros/"
-			scripts/docker-build.sh $platform $image $filepath 
+			$WS_PATH/scripts/docker-build.sh $platform $image $filepath 
 			container_name="ros_container"
 			mode="ros"
 		fi
-		scripts/start.sh $PWD $container_name $image
-		iexec $container_name "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh ${mode}" 
 	fi
 
 
@@ -102,28 +99,32 @@ then
 	then
 		if [[ "$2" == "vision-tools"  ]]
 		then
-			scripts/start.sh $PWD vision_tools_container vision-tools/dev
+			$WS_PATH/scripts/start.sh $WS_PATH vision_tools_container vision-tools/dev
 		elif [[ "$2" == "base"  ]]
 		then
 			echo "=============== Initialising SkyNet Container ================"
-			scripts/start.sh $PWD skynet_container skynet/base
+			$WS_PATH/scripts/start.sh $WS_PATH skynet_container skynet/base
+			iexec skynet_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
 			iexec skynet_container "./scripts/build.sh $2"
 		elif [[ "$2" == "sitl"  ]]
 		then
 			echo "=============== Initialising SITL Container ================"
-			scripts/start.sh $PWD sitl_container skynet/base
-			scripts/start.sh $PWD bfx_container bfx/test
-			iexec sitl_container "./scripts/build.sh $2"
+			$WS_PATH/scripts/start.sh $WS_PATH sitl_container skynet/base
+			$WS_PATH/scripts/start.sh $WS_PATH bfx_container bfx/test
+			iexec sitl_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
+			iexec sitl_container "/ws/scripts/build.sh $2"
 			iexec bfx_container "./scripts/build-bfx-deps.sh"
 		elif [[ "$2" == "ros"  ]]
 		then
 			echo "=============== Initialising SkyNet-ROS Container ================"
-			scripts/start.sh $PWD ros_container skynet/ros
+			$WS_PATH/scripts/start.sh $WS_PATH ros_container skynet/ros
+			iexec_ros ros_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
 			iexec_ros ros_container "./scripts/build.sh $2"
 		fi
 	else
-		scripts/start.sh $PWD ros_container skynet/ros
-		scripts/start.sh $PWD vision_tools_container vision-tools/dev
+		$WS_PATH/scripts/start.sh $WS_PATH ros_container skynet/ros
+		$WS_PATH/scripts/start.sh $WS_PATH vision_tools_container vision-tools/dev
+		iexec_ros ros_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
 		iexec_ros ros_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
 	fi
 
@@ -167,24 +168,24 @@ then
 	then
 		if [[ "$3" == "AirSimNH" ]]
 		then
-			nohup ./envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$(pwd)/config/settings-no-px4.json > airsimnh.log &
+			nohup $WS_PATH/envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$WS_PATH/config/settings-no-px4.json > $WS_PATH/airsimnh.log &
 		
 		elif [[ "$3" == "LandscapeMountain" ]]
 		then
-			nohup ./envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -renderoffscreen -settings=$(pwd)/config/settings-no-px4.json > airsimmountain.log &
+			nohup $WS_PATH/envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -renderoffscreen -settings=$WS_PATH/config/settings-no-px4.json > $WS_PATH/airsimmountain.log &
 		elif [[ "$3" == "ZhangJiajie" ]]
 		then
-			nohup ./envs/ZhangJiajie/LinuxNoEditor/ZhangJiajie.sh -renderoffscreen -settings=$(pwd)/config/settings-no-px4.json > airsimmountain.log &
+			nohup $WS_PATH/envs/ZhangJiajie/LinuxNoEditor/ZhangJiajie.sh -renderoffscreen -settings=$WS_PATH/config/settings-no-px4.json > $WS_PATH/airsimmountain.log &
 		elif [[ "$3" == "TrapCam" ]]
 		then
-			nohup ./envs/TrapCam/LinuxNoEditor/TrapCam.sh -WINDOWED -ResX=640 -ResY=480 -settings=$(pwd)/config/settings-no-px4.json > airsimtrap.log &
+			nohup $WS_PATH/envs/TrapCam/LinuxNoEditor/TrapCam.sh -WINDOWED -ResX=640 -ResY=480 -settings=$WS_PATH/config/settings-no-px4.json > $WS_PATH/airsimtrap.log &
 		elif [[ "$3" == "Blocks" ]]
 		then
-			nohup ./envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -renderoffscreen -settings=$(pwd)/config/settings-no-px4.json > airsimblocks.log &
+			nohup $WS_PATH/envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -WINDOWED -ResX=640 -ResY=480 -settings=$WS_PATH/config/settings-no-px4.json > $WS_PATH/airsimblocks.log &
 		elif [[ "$3" == "Africa" ]]
 		then
 			echo "Starting Africa"
-			nohup ./envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh  -WINDOWED -ResX=640 -ResY=480 -settings=$(pwd)/config/settings-africa.json > airsimafrica.log &
+			nohup $WS_PATH/envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh  -WINDOWED -ResX=640 -ResY=480 -settings=$WS_PATH/config/settings-africa.json > $WS_PATH/airsimafrica.log &
 		fi
 		sleep 5
 		iexec_ros ros_container "cd ros_ws/ && source install/setup.bash && ros2 run airsim_lib talker"
@@ -205,30 +206,30 @@ then
 		echo "========== Starting AIRSIM =========="
 		if [[ "$3" == "AirSimNH" ]]
 		then
-			nohup ./envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$(pwd)/config/settings.json > airsimnh.log &
+			nohup $WS_PATH/envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$WS_PATH/config/settings.json > $WS_PATH/airsimnh.log &
 		elif [[ "$3" == "LandscapeMountain" ]]
 		then
-			nohup ./envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -WINDOWED -ResX=640 -ResY=480 -settings=$(pwd)/config/settings.json > airsimmountain.log &
+			nohup $WS_PATH/envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -WINDOWED -ResX=640 -ResY=480 -settings=$WS_PATH/config/settings.json > $WS_PATH/airsimmountain.log &
 		elif [[ "$3" == "ZhangJiajie" ]]
 		then
-			nohup ./envs/ZhangJiajie/LinuxNoEditor/ZhangJiajie.sh -WINDOWED -ResX=640 -ResY=480 -settings=$(pwd)/config/settings.json > airsimzhang.log &
+			nohup $WS_PATH/envs/ZhangJiajie/LinuxNoEditor/ZhangJiajie.sh -WINDOWED -ResX=640 -ResY=480 -settings=$WS_PATH/config/settings.json > $WS_PATH/airsimzhang.log &
 		elif [[ "$3" == "TrapCam" ]]
 		then
-			nohup ./envs/TrapCam/LinuxNoEditor/TrapCam.sh -WINDOWED -ResX=640 -ResY=480 -settings=$(pwd)/config/settings-trap.json > airsimtrap.log &
+			nohup $WS_PATH/envs/TrapCam/LinuxNoEditor/TrapCam.sh -WINDOWED -ResX=640 -ResY=480 -settings=$WS_PATH/config/settings-trap.json > $WS_PATH/airsimtrap.log &
 		elif [[ "$3" == "Blocks" ]]
 		then
-			nohup ./envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -renderoffscreen -settings=$(pwd)/config/settings.json > airsimblocks.log &
+			nohup $WS_PATH/envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -renderoffscreen -settings=$WS_PATH/config/settings.json > $WS_PATH/airsimblocks.log &
 		elif [[ "$3" == "Africa" ]]
 		then
-			nohup ./envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh -WINDOWED -ResX=640 -ResY=480  -settings=$(pwd)/config/settings-africa.json >> airsimafrica.log &
+			nohup $WS_PATH/envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh -WINDOWED -ResX=640 -ResY=480  -settings=$WS_PATH/config/settings-africa.json >> $WS_PATH/airsimafrica.log &
 		fi
 		last_run_sitl_env="$3"
 		save_state last_run_sitl_env
 		echo "========== Starting BFX =========="
-		gnome-terminal -- sh -c "bash -c \"./scripts/run-bfx.sh && exit; exec bash\""
+		gnome-terminal -- sh -c "bash -c \"$WS_PATH/scripts/run-bfx.sh && exit; exec bash\""
 		sleep 5
 		echo "========== Starting Mircrortps Agent =========="
-		gnome-terminal -- sh -c "bash -c \"./scripts/run-rtps-agent.sh && exit; exec bash\""
+		gnome-terminal -- sh -c "bash -c \"$WS_PATH/scripts/run-rtps-agent.sh && exit; exec bash\""
 		echo "========== Starting SkyNet =========="
 		iexec sitl_container "cd /ws/SkyNet/build && ./SkyNet"
 		iexec bfx_container "ps -eawf | grep px4 | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
@@ -261,7 +262,12 @@ then
 
 elif [[ "$1" == "down" ]]
 then
-	docker stop ros_container skynet_container sitl_container vision_tools_container bfx_container
+	if [[ -n "$2" ]]
+	then
+		docker stop "${2}_container"
+	else
+		docker stop ros_container skynet_container sitl_container vision_tools_container bfx_container
+	fi
 
 
 elif [[ "$1" == "ps" ]]

@@ -1,5 +1,9 @@
 #!/bin/bash
 
+name="$2"
+image="$3"
+echo $name
+echo $image
 docker run --rm -d -it -v $1:/ws/ \
 			-v ~/.ssh:/root/.ssh \
 			-v /dev:/dev \
@@ -9,4 +13,4 @@ docker run --rm -d -it -v $1:/ws/ \
             -v XAUTHORITY=$XAUTHORITY \
             -v /tmp/.X11-unix:/tmp/.X11-unix \
             --env="DISPLAY" --net=host \
-            --privileged --name $2 $3 bash
+            --privileged --name $name $image bash
