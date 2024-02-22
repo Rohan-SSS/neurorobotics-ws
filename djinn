@@ -188,13 +188,28 @@ then
 			nohup $WS_PATH/envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh  -WINDOWED -ResX=640 -ResY=480 -settings=$WS_PATH/config/settings-africa.json > $WS_PATH/airsimafrica.log &
 		fi
 		sleep 5
-		iexec_ros ros_container "cd ros_ws/ && source install/setup.bash && ros2 run airsim_lib talker"
+		last_run_sitl_env="$3"
+		save_state last_run_sitl_env
+		if [[ "$DJINN_MODE" != "automation" ]]
+		then
+			iexec_ros ros_container "cd ros_ws/ && source install/setup.bash && nohup ros2 run airsim_lib talker > /ws/airsim_survey_lib.log &"
+		else
+			iexec_ros ros_container "cd ros_ws/ && source install/setup.bash && ros2 run airsim_lib talker"
+		fi
 		name="$3"
 		if [[ "$3" == "LandscapeMountain"  ]]
 		then
 			name="LandscapeMounta"
 		fi
-		ps -ef | grep $name | grep -v grep | awk '{print $2}' | xargs -r kill -9
+		if [[ "$DJINN_MODE" != "automation" ]]
+		then
+			ps -ef | grep $name | grep -v grep | awk '{print $2}' | xargs -r kill -9
+			last_run_sitl_env=""
+			save_state last_run_sitl_env
+		else
+			save_state last_run_sitl_env
+		fi
+
 	elif [[ "$2" == "sensors" ]]
 	then
 		iexec_ros ros_container "cd ros_ws && source install/setup.bash && ros2 launch sensors sensors_launch.py"
@@ -231,15 +246,21 @@ then
 		echo "========== Starting Mircrortps Agent =========="
 		gnome-terminal -- sh -c "bash -c \"$WS_PATH/scripts/run-rtps-agent.sh && exit; exec bash\""
 		echo "========== Starting SkyNet =========="
-		iexec sitl_container "cd /ws/SkyNet/build && ./SkyNet"
-		iexec bfx_container "ps -eawf | grep px4 | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
-		iexec bfx_container "ps -eawf | grep px4-simulator | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
-		iexec sitl_container "ps -eawf | grep micrortps_agent | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
-		ps -ef | grep run-bfx.sh | grep -v grep | awk '{print $2}' | xargs -r kill -9
-		ps -ef | grep run-rtps-agent.sh | grep -v grep | awk '{print $2}' | xargs -r kill -9
-		ps -ef | grep $last_run_sitl_env | grep -v grep | awk '{print $2}' | xargs -r kill -9
-		last_run_sitl_env=""
-		save_state last_run_sitl_env
+		iexec sitl_container "cd /ws/SkyNet/build && nohup ./SkyNet > /ws/skynet.log &"
+
+		if [[ "$DJINN_MODE" != "automation" ]]
+		then
+			iexec bfx_container "ps -eawf | grep px4 | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
+			iexec bfx_container "ps -eawf | grep px4-simulator | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
+			iexec sitl_container "ps -eawf | grep micrortps_agent | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
+			ps -ef | grep run-bfx.sh | grep -v grep | awk '{print $2}' | xargs -r kill -9
+			ps -ef | grep run-rtps-agent.sh | grep -v grep | awk '{print $2}' | xargs -r kill -9
+			ps -ef | grep $last_run_sitl_env | grep -v grep | awk '{print $2}' | xargs -r kill -9
+			last_run_sitl_env=""
+			save_state last_run_sitl_env
+		else
+			save_state last_run_sitl_env
+		fi
 	fi
 
 elif [[ $1 == "kill" ]]
@@ -258,6 +279,13 @@ then
 			ps -eawf | grep "$last_run_sitl_env" | grep -v grep | awk '{print $2}' | xargs -r kill -9
 		fi
 		echo "Done Killing SITL processes"
+	elif [[ $2 == "airsim" ]]
+	then
+		if [[ ! -z "$last_run_sitl_env"  ]]
+		then
+			ps -eawf | grep "$last_run_sitl_env" | grep -v grep | awk '{print $2}' | xargs -r kill -9
+		fi
+		iexec ros_container "ps -eawf | grep airsim_lib | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
 	fi
 
 elif [[ "$1" == "down" ]]
