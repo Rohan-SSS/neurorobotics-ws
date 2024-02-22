@@ -237,7 +237,7 @@ then
 		iexec sitl_container "ps -eawf | grep micrortps_agent | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
 		ps -ef | grep run-bfx.sh | grep -v grep | awk '{print $2}' | xargs -r kill -9
 		ps -ef | grep run-rtps-agent.sh | grep -v grep | awk '{print $2}' | xargs -r kill -9
-		ps -ef | grep $name | grep -v grep | awk '{print $2}' | xargs -r kill -9
+		ps -ef | grep $last_run_sitl_env | grep -v grep | awk '{print $2}' | xargs -r kill -9
 		last_run_sitl_env=""
 		save_state last_run_sitl_env
 	fi

@@ -2,6 +2,8 @@ import os
 from flask import Flask
 import json
 
+# Refer to the following link for information about how to pass arguments to a Flask APP
+# https://stackoverflow.com/questions/73635412/flask-run-with-argument
 def create_app(ws_path):
     print("Workspace Path: ", ws_path)
     os.environ["PATH"] = "{}:{}".format(os.environ["PATH"], ws_path)
