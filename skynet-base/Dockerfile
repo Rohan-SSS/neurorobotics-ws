@@ -24,15 +24,25 @@ RUN apt update && \
     add-apt-repository -y ppa:deadsnakes/ppa  && \
     apt-get update && \
     apt-get install -y --no-install-recommends \
+    build-essential \
+	ca-certificates \
+	libncurses5-dev \
+	libgtk2.0-dev \
+	ruby-dev \
+	lua5.2 \
+	liblua5.2-dev \
+	libperl-dev \
+    git\
+	checkinstall \
+	python3-pip \
+	python3-dev \
     sudo \
     usbutils \
     libcanberra-gtk3-module \
     udev \
-    git \
     gcc-9 \
     g++ \
     libeigen3-dev \
-    build-essential \
     cmake \
     unzip \
     pkg-config \
@@ -45,10 +55,11 @@ RUN apt update && \
     libv4l-dev \
     libxvidcore-dev \
     libx264-dev \
+	ffmpeg \
+	x264 \
     libgtk-3-dev \
     libatlas-base-dev \
     gfortran \
-    python3.6-dev \
     libssl-dev \
     libusb-1.0-0-dev \
     libglfw3-dev \
@@ -59,6 +70,15 @@ RUN apt update && \
     geographiclib-tools \
     libgeographic-dev \
     libspdlog-dev \
+	libasio-dev \
+	libtinyxml2-dev \
+	libsuitesparse-dev \
+	libopenexr24:amd64 \
+	openssh-client \
+	gdb \
+	dirmngr \
+	libc++1 \
+	libc++abi1 \
     libgtest-dev && \
     rm -rf /var/lib/apt/lists/*
 
@@ -70,7 +90,7 @@ fi
 WORKDIR /
 
 RUN git clone https://github.com/opencv/opencv.git && \
-    cd opencv && \
+    cd opencv && git config http.postBuffer 524288000 \
     git checkout 3.4 && \
     cd ..
 
@@ -108,22 +128,6 @@ WORKDIR /Pangolin/build
 RUN cmake .. && \
     make -j6
 
-# install bootstrap tools
-RUN apt-get update && apt-get install --no-install-recommends -y \
-    build-essential \
-	ca-certificates \
-	libncurses5-dev \
-	libgtk2.0-dev \
-	ruby-dev \
-	lua5.2 \
-	liblua5.2-dev \
-	libperl-dev \
-    git\
-	checkinstall \
-	python3-pip \
-	python3-dev \
-    && rm -rf /var/lib/apt/lists/*
-
 WORKDIR /
 
 RUN cd opencv && \
@@ -143,8 +147,6 @@ WORKDIR /ws
 RUN ulimit -c unlimited
 RUN sysctl -w kernel.core_pattern="/tmp/%e_core.%p"
 
-RUN apt-get update && apt-get install -y ffmpeg x264 libx264-dev
-
 WORKDIR /
 RUN git clone https://github.com/vim/vim.git && cd vim && git checkout 6a950da && ./configure --with-features=huge \
             --enable-multibyte \
@@ -163,9 +165,9 @@ RUN git clone https://github.com/vim/vim.git && cd vim && git checkout 6a950da &
 WORKDIR /root
 RUN mkdir -p /root/.vim/bundle 
 RUN cd /root/.vim/bundle && git clone https://github.com/VundleVim/Vundle.vim
-RUN wget -O /root/.vimrc https://edward0im.github.io/files/200917/vimrc1_ycm
+COPY .vimrc /root/.vimrc
 RUN mkdir -p /root/.vim/colors
-RUN wget -O /root/.vim/colors/codedark.vim https://edward0im.github.io/files/200917/codedark.vim
+COPY codedark.vim /root/.vim/colors/codedark.vim 
 RUN vim -c PluginInstall -c qall && ls
 RUN cd /root/.vim/bundle/ && rm -rf youcompleteme && git clone https://github.com/ycm-core/YouCompleteMe youcompleteme
 RUN python3 -m pip install regex
@@ -173,7 +175,6 @@ RUN cd /root/.vim/bundle/youcompleteme && git submodule update --init --recursiv
 RUN cd /root/.vim/bundle/youcompleteme/ && python3 ./install.py --force-sudo --clang-completer
 RUN cp /root/.vim/bundle/youcompleteme/third_party/ycmd/.ycm_extra_conf.py  /root/.vim/
 
-RUN apt-get update && apt-get install -y libasio-dev libtinyxml2-dev libsuitesparse-dev libopenexr24:amd64
 WORKDIR /ws
 
 ENTRYPOINT ["tail", "-f", "/dev/null"]

@@ -8,6 +8,7 @@ BFT_PORT="14550"
 # https://stackoverflow.com/questions/63084354/how-to-store-state-between-two-consecutive-runs-of-a-bash-script
 statefile="/tmp/djinn_state"
 last_run_sitl_env=""
+xhost +
 
 save_state () {
   typeset -p "$@" >"$statefile"
@@ -28,9 +29,10 @@ iexec_ros(){
 			time docker container exec -it "$1" /bin/bash -l -c "source /opt/ros/${ROS_VERSION}/setup.bash && $2"
         }
 
+cd $WS_PATH
 
-		if [[ "$1" == "install" ]]
-		then
+if [[ "$1" == "install" ]]
+then
 	scripts/install.sh $2 $3 $4
 
 
@@ -71,8 +73,21 @@ then
 				filepath="$WS_PATH/vision-tools/"
 				container_name="vision_tools_container"
 				mode="vision-tools"
+			elif [[ "$3" == "kalibr" ]]
+			then
+				echo "============ BUILDING Kalibr Image ============="
+				image="skynet/kalibr"
+				filepath="$WS_PATH/kalibr/"
+				container_name="kalibr_container"
+				mode="kalibr"
 			fi
-			# scripts/docker-build.sh $platform $image $filepath 
+			if [[ "$mode" == "kalibr" ]]
+			then
+				$WS_PATH/scripts/docker-build.sh $platform $image $filepath "WS_PATH=$WS_PATH" 
+			else
+				$WS_PATH/scripts/docker-build.sh $platform $image $filepath 
+			fi
+
 			if [[ "${mode}" == "sitl" ]]
 			then
 				$WS_PATH/scripts/docker-build.sh $platform bfx/test $WS_PATH/ext/bfx 
@@ -120,6 +135,10 @@ then
 			$WS_PATH/scripts/start.sh $WS_PATH ros_container skynet/ros
 			iexec_ros ros_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
 			iexec_ros ros_container "./scripts/build.sh $2"
+		elif [[ "$3" == "kalibr" ]]
+		then
+			echo "============ Initialising Kalibr Container ============="
+			$WS_PATH/scripts/start.sh $WS_PATH/skynet-kalibr kalibr_container skynet/kalibr
 		fi
 	else
 		$WS_PATH/scripts/start.sh $WS_PATH ros_container skynet/ros
@@ -212,10 +231,17 @@ then
 
 	elif [[ "$2" == "sensors" ]]
 	then
-		iexec_ros ros_container "cd ros_ws && source install/setup.bash && ros2 launch sensors sensors_launch.py"
+		launch_file="sensors_launch.py"
+		if [[ -n "$3" ]]
+		then
+			iexec_ros ros_container "cd ros_ws && source install/setup.bash && ros2 launch sensors ${3}_launch.py"
+		else
+			iexec_ros ros_container "cd ros_ws && source install/setup.bash && ros2 launch sensors sensors_launch.py"
+		fi
 	elif [[ "$2" == "skynet" ]]
 	then
-		iexec skynet_container "cd SkyNet/build && ./SkyNet"
+		iexec skynet_container "cd SkyNet/build && nohup ./SkyNet > skynet.log"
+		# iexec skynet_container "cd SkyNet/build && gdb ./SkyNet"
 	elif [[ "$2" == "sitl" ]]
 	then
 		echo "========== Starting AIRSIM =========="
@@ -261,6 +287,9 @@ then
 		else
 			save_state last_run_sitl_env
 		fi
+	elif [[ "$2" == "oracle" ]]
+	then
+		./scripts/start-oracle.sh
 	fi
 
 elif [[ $1 == "kill" ]]
@@ -302,3 +331,4 @@ elif [[ "$1" == "ps" ]]
 then
 	docker ps
 fi
+cd -

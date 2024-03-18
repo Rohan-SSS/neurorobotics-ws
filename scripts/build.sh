@@ -35,7 +35,7 @@ echo "Logging progress to .../ORBSlam3/build.log"
 
 echo ""
 
-if [[ "$1" == "sitl"  ]]
+if [[ "$build_mode" != "ros" ]]
 then
 	echo "============ BUILDING SkyNet SITL DEPENDENCIES ============="
 	cd /ws/ext
@@ -55,7 +55,7 @@ then
 	fi
 
 	echo "============ BUILDING Fast-CDR ============="
-	
+
 	if [[ -d /ws/ext/Fast-CDR ]]
 	then
 		cd Fast-CDR
@@ -103,7 +103,7 @@ if [[ $1 == "sitl" ]]
 then
 	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DPLATFORM=Drone -DSLAMTYPE=ORB2 -DAUTOPILOT=NEW .. 
 else
-	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DPLATFORM=Laptop -DSLAMTYPE=ORB2 .. 
+	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_EXPORT_COMPILE_COMMANDS=1 -DPLATFORM=Laptop -DSLAMTYPE=ORB3 .. 
 fi
 
 echo "" 

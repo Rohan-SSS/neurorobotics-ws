@@ -6,6 +6,7 @@ SkyNet
 envs/
 Pangolin/
 VisionTools/
+kalibr/
 *__pycache__/
 *libSensor.so
 ros_ws/

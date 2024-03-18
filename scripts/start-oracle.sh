@@ -1,3 +1,4 @@
 #!/bin/bash
-export FLASK_APP="$WS_PATH"/skynet-oracle/
-flask --app "oracle:create_app('$HOME/skynet-ws')" run --host=0.0.0.0 --debug
+cd $WS_PATH/skynet-oracle
+flask --app "oracle:create_app('$WS_PATH')" run --host=0.0.0.0 --port 8080 --debug
+cd -

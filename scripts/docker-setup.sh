@@ -73,33 +73,30 @@ cd ../
 
 echo ""
 
-if [[ "$1" == "sitl" ]]
+mkdir -p ext && cd ext/
+if [[ ! -d "Fast-CDR" ]]
 then
-	mkdir -p ext && cd ext/
-	if [[ ! -d "Fast-CDR" ]]
-	then
-		git clone https://github.com/eProsima/Fast-CDR.git
-		cd Fast-CDR
-		git checkout c69dff2
-		cd ../
-	else
-		echo "Fast-CDR already present"
-	fi
-	if [[ ! -d "foonathan_memory_vendor" ]]
-	then
-		git clone https://github.com/eProsima/foonathan_memory_vendor.git
-	else
-		echo "foonathan_memory_vendor already present"
-	fi
-	echo "=============== CLONING FAST-RTPS REPOS ================="
-	if [[ ! -d "Fast-RTPS" ]]
-	then
-		GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/Fast-RTPS.git
-	else
-		echo "Fast-RTPS already present"
-	fi
-	cd /ws
+	git clone https://github.com/eProsima/Fast-CDR.git
+	cd Fast-CDR
+	git checkout c69dff2
+	cd ../
+else
+	echo "Fast-CDR already present"
 fi
+if [[ ! -d "foonathan_memory_vendor" ]]
+then
+	git clone https://github.com/eProsima/foonathan_memory_vendor.git
+else
+	echo "foonathan_memory_vendor already present"
+fi
+echo "=============== CLONING FAST-RTPS REPOS ================="
+if [[ ! -d "Fast-RTPS" ]]
+then
+	GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/Fast-RTPS.git
+else
+	echo "Fast-RTPS already present"
+fi
+cd /ws
 
 echo ""
 
@@ -113,12 +110,7 @@ else
 fi
 cd SkyNet
 git config --global --add safe.directory /ws/SkyNet
-if [[ "$1" == "sitl" ]]
-then
-	git checkout main_v1_airsim
-else
-	git checkout main_v1
-fi
+git checkout main_v1
 cd ../
 
 echo ""
@@ -155,31 +147,11 @@ else
 	#docker pull mahesha999/opencv-realsense:0.4
 
 	echo ""
-fi
+fi	
+
+echo "=============== CLONING KALIBR REPO ================="
+git clone https://github.com/ethz-asl/kalibr.git
+cd kalibr
+cp Dockerfile_ros1_20_04 Dockerfile
 
 echo "Done Setup"
-
-#echo "============ CREATING SkyNet Docker Container ============="
-#echo $PWD
-
-#docker run -d -v ${PWD}/ORBSlam2:/ws/ORBSlam2 \
-#            -v ${PWD}/AKAZESlam:/ws/AKAZESlam \
-#            -v ${PWD}/SkyNet:/ws/SkyNet \
-#            -v ${PWD}/scripts/build.sh:/ws/build.sh \
-#			-v ${PWD}/scripts/docker-setup.sh:/ws/docker-setup.sh \
-#            -e DISPLAY=$DISPLAY \
-#            -v XAUTHORITY=$XAUTHORITY \
-#            -v /tmp/.X11-unix:/tmp/.X11-unix \
-#            --env="DISPLAY" --net=host \
-#            --privileged --name skynet_container skynet/dev
-
-#echo "Container started"
-#echo ""
-
-
-
-#docker exec skynet_container /bin/bash -c "/ws/build.sh"
-#/ws/scripts/build.sh
-
-
-
