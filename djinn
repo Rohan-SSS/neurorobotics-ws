@@ -9,6 +9,8 @@ BFT_PORT="14550"
 statefile="/tmp/djinn_state"
 last_run_sitl_env=""
 xhost +
+echo "WORKSPACE PATH: $WS_PATH"
+echo "DJINN MODE: $DJINN_MODE"
 
 save_state () {
   typeset -p "$@" >"$statefile"
@@ -208,24 +210,16 @@ then
 		fi
 		sleep 5
 		last_run_sitl_env="$3"
+		
 		save_state last_run_sitl_env
-		if [[ "$DJINN_MODE" != "automation" ]]
+		if [[ "$DJINN_MODE" == "automation" ]]
 		then
 			iexec_ros ros_container "cd ros_ws/ && source install/setup.bash && nohup ros2 run airsim_lib talker > /ws/airsim_survey_lib.log &"
-		else
-			iexec_ros ros_container "cd ros_ws/ && source install/setup.bash && ros2 run airsim_lib talker"
-		fi
-		name="$3"
-		if [[ "$3" == "LandscapeMountain"  ]]
-		then
-			name="LandscapeMounta"
-		fi
-		if [[ "$DJINN_MODE" != "automation" ]]
-		then
-			ps -ef | grep $name | grep -v grep | awk '{print $2}' | xargs -r kill -9
-			last_run_sitl_env=""
 			save_state last_run_sitl_env
 		else
+			iexec_ros ros_container "cd ros_ws/ && source install/setup.bash && ros2 run airsim_lib talker"
+			ps -ef | grep $last_run_sitl_env | grep -v grep | awk '{print $2}' | xargs -r kill -9
+			last_run_sitl_env=""
 			save_state last_run_sitl_env
 		fi
 
@@ -244,6 +238,9 @@ then
 		# iexec skynet_container "cd SkyNet/build && gdb ./SkyNet"
 	elif [[ "$2" == "sitl" ]]
 	then
+		# echo "========== Starting UP QGC =========="	
+		# nohup $HOME/shreyas/QGroundControl.AppImage > $HOME/shreyas/qgc.log &
+		sleep 5
 		echo "========== Starting AIRSIM =========="
 		if [[ "$3" == "AirSimNH" ]]
 		then
@@ -266,25 +263,36 @@ then
 		fi
 		last_run_sitl_env="$3"
 		save_state last_run_sitl_env
-		echo "========== Starting BFX =========="
-		gnome-terminal -- sh -c "bash -c \"$WS_PATH/scripts/run-bfx.sh && exit; exec bash\""
-		sleep 5
-		echo "========== Starting Mircrortps Agent =========="
-		gnome-terminal -- sh -c "bash -c \"$WS_PATH/scripts/run-rtps-agent.sh && exit; exec bash\""
-		echo "========== Starting SkyNet =========="
-		iexec sitl_container "cd /ws/SkyNet/build && nohup ./SkyNet > /ws/skynet.log &"
 
-		if [[ "$DJINN_MODE" != "automation" ]]
+		if [[ "$DJINN_MODE" == "automation" ]]
 		then
+			echo "========== Starting BFX =========="
+			$WS_PATH/scripts/run-bfx.sh $DJINN_MODE
+			sleep 5
+
+			echo "========== Starting Mircrortps Agent =========="
+			$WS_PATH/scripts/run-rtps-agent.sh $DJINN_MODE
+
+			echo "========== Starting SkyNet =========="
+			xhost +
+			iexec sitl_container "nohup bash -c \"cd /ws/SkyNet/build && ./SkyNet > /ws/skynet.log &\""
+			save_state last_run_sitl_env
+		else
+			echo "========== Starting BFX =========="
+			gnome-terminal -- sh -c "bash -c \"$WS_PATH/scripts/run-bfx.sh && exit; exec bash\""
+			sleep 5
+			echo "========== Starting Mircrortps Agent =========="
+			gnome-terminal -- sh -c "bash -c \"$WS_PATH/scripts/run-rtps-agent.sh && exit; exec bash\""
+			echo "========== Starting SkyNet =========="
+			iexec sitl_container "cd /ws/SkyNet/build && gdb ./SkyNet"
 			iexec bfx_container "ps -eawf | grep px4 | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
 			iexec bfx_container "ps -eawf | grep px4-simulator | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
 			iexec sitl_container "ps -eawf | grep micrortps_agent | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
 			ps -ef | grep run-bfx.sh | grep -v grep | awk '{print $2}' | xargs -r kill -9
 			ps -ef | grep run-rtps-agent.sh | grep -v grep | awk '{print $2}' | xargs -r kill -9
 			ps -ef | grep $last_run_sitl_env | grep -v grep | awk '{print $2}' | xargs -r kill -9
+			# ps -ef | grep QGroundControl | grep -v grep | awk '{print $2}' | xargs -r kill -9
 			last_run_sitl_env=""
-			save_state last_run_sitl_env
-		else
 			save_state last_run_sitl_env
 		fi
 	elif [[ "$2" == "oracle" ]]
@@ -301,8 +309,10 @@ then
 		iexec bfx_container "ps -eawf | grep px4 | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
 		iexec bfx_container "ps -eawf | grep px4-simulator | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
 		iexec sitl_container "ps -eawf | grep micrortps_agent | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
+		iexec sitl_container "ps -eawf | grep SkyNet | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
 		ps -ef | grep run-bfx.sh | grep -v grep | awk '{print $2}' | xargs -r kill -9
 		ps -eawf | grep run-rtps-agent.sh | grep -v grep | awk '{print $2}' | xargs -r kill -9
+		# ps -ef | grep QGroundControl | grep -v grep | awk '{print $2}' | xargs -r kill -9
 		if [[ ! -z "$last_run_sitl_env"  ]]
 		then
 			ps -eawf | grep "$last_run_sitl_env" | grep -v grep | awk '{print $2}' | xargs -r kill -9
@@ -315,6 +325,9 @@ then
 			ps -eawf | grep "$last_run_sitl_env" | grep -v grep | awk '{print $2}' | xargs -r kill -9
 		fi
 		iexec ros_container "ps -eawf | grep airsim_lib | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
+	elif [[ "$2" == "gqc" ]]
+	then
+		ps -ef | grep QGroundControl | grep -v grep | awk '{print $2}' | xargs -r kill -9
 	fi
 
 elif [[ "$1" == "down" ]]
@@ -330,5 +343,6 @@ then
 elif [[ "$1" == "ps" ]]
 then
 	docker ps
+
 fi
 cd -

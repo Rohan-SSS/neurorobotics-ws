@@ -1,3 +1,4 @@
+
 import os
 from flask import Flask
 import json
@@ -26,11 +27,12 @@ def create_app(ws_path):
     # Need to set the following values in .bashrc to be able to use djinn in general as well.
     os.environ["PATH"] = "{}:{}".format(os.environ["PATH"], ws_path)
     os.environ["WS_PATH"] = ws_path
-    os.environ["DJINN_MODE"] = "automation"
+    # os.environ["DJINN_MODE"] = "automation"
     app = Flask(__name__)
 
     @app.route("/")
     def hello_world():
+        status = os.system ("djinn")
         return "<p>Welcome to Oracle for SkyNet. Oracle Provides a Web API to interface with djinn!</p>"
 
     @app.route("/setup/<arg>")
@@ -54,7 +56,7 @@ def create_app(ws_path):
         print("Starting Process: ", arg)
         print("Starting Environment: ", env)
         status = os.system('djinn start {} {}'.format(arg, env))
-        time.sleep(30)
+        time.sleep(15)
         if status != 0:
             return json.dumps({'success':False}), 500, {'ContentType':'application/json'}
         else:
@@ -66,7 +68,7 @@ def create_app(ws_path):
             print("SkyNet Status: ", status_skynet)
             status_px4 = checkIfProcessRunning("px4")
             print("PX4 Status: ", status_px4)
-            status = status and status_px4 and status_skynet    
+            status = status and status_px4 and status_skynet
         elif arg == "airsim":
             status_airsim_lib = checkIfProcessRunning("airsim_lib")
             print("Airsim Lib Status: ", status_airsim_lib)

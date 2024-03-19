@@ -79,6 +79,10 @@ RUN apt update && \
 	dirmngr \
 	libc++1 \
 	libc++abi1 \
+	libicu-dev \
+	libbz2-dev \
+	libboost-all-dev \
+	libboost-serialization-dev \
     libgtest-dev && \
     rm -rf /var/lib/apt/lists/*
 
@@ -90,7 +94,7 @@ fi
 WORKDIR /
 
 RUN git clone https://github.com/opencv/opencv.git && \
-    cd opencv && git config http.postBuffer 524288000 \
+    cd opencv && git config http.postBuffer 524288000 && \
     git checkout 3.4 && \
     cd ..
 

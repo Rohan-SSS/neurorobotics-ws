@@ -111,6 +111,8 @@ fi
 cd SkyNet
 git config --global --add safe.directory /ws/SkyNet
 git checkout main_v1
+git submodule init
+git submodule update
 cd ../
 
 echo ""
