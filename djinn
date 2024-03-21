@@ -136,7 +136,7 @@ then
 			echo "=============== Initialising SkyNet-ROS Container ================"
 			$WS_PATH/scripts/start.sh $WS_PATH ros_container skynet/ros
 			iexec_ros ros_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
-			iexec_ros ros_container "./scripts/build.sh $2"
+			iexec_ros ros_container "./scripts/build_ros_packages.sh"
 		elif [[ "$3" == "kalibr" ]]
 		then
 			echo "============ Initialising Kalibr Container ============="

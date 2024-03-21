@@ -1,3 +1,4 @@
+git config --global --add safe.directory /ws/
 
 echo "============ CLONING ORBSlam3 repo ============="
 echo $PWD
@@ -33,6 +34,12 @@ cd ORBSlam2
 git config --global --add safe.directory /ws/ORBSlam2
 echo "build mode: $1"
 # git checkout main_v1
+# if [[ "$1" == "sitl" ]]
+# then
+# 	git checkout vaibhav_covariance
+# else
+# 	git checkout main_v1
+# fi
 git branch
 cd ..
 
