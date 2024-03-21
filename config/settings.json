@@ -18,6 +18,7 @@
     "UpdateIntervalSecs": 60
   },
   "CameraDefaults": {
+	"X" : 0.0302200000733137, "Y":  -0.00740000000223517, "Z":  -0.0160199999809265, 
     "CaptureSettings": [
       {
         "ImageType": 0,
@@ -103,7 +104,15 @@
                     "Enabled": true,
                     "PressureFactorSigma": 0.0001825,
 					"UncorrelatedNoiseSigma": 0.5
-                }
+                },
+				"Imu": {
+					"SensorType": 2,
+					"Enabled" : true,
+					"AngularRandomWalk": 2.194800416573455e-06,
+					"GyroBiasStability": 0.0002961112703004318,
+					"VelocityRandomWalk": 0.00021941195161599857,
+					"AccelBiasStability": 0.005556491292169265
+				}
             },
             "Parameters": {
                 "NAV_RCL_ACT": 0,

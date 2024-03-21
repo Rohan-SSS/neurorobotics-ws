@@ -11,7 +11,8 @@
 	"Altitude": 25
   },
   "CameraDefaults": {
-    "CaptureSettings": [
+    "X" : 0.0302200000733137, "Y":  -0.00740000000223517, "Z":  -0.0160199999809265, 
+	"CaptureSettings": [
       {
         "ImageType": 0,
         "Width": 640,
@@ -95,7 +96,17 @@
                     "SensorType": 1,
                     "Enabled": true,
                     "PressureFactorSigma": 0.0001825
-                }
+                },
+				"Imu": {
+					"SensorType": 2,
+					"Enabled" : true,
+					"AngularRandomWalk": 2.194800416573455e-06,
+					"GyroBiasStabilityTau": 500,
+					"GyroBiasStability": 0.00662124929,
+					"VelocityRandomWalk": 0.00021941195161599857,
+					"AccelBiasStabilityTau": 800,
+					"AccelBiasStability": 0.15716130689
+				}
             },
             "Parameters": {
                 "NAV_RCL_ACT": 0,

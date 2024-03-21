@@ -1,4 +1,4 @@
-FROM mahesha999/opencv-realsense:0.4
+FROM skynet/base
 RUN apt-get update && apt-get install -y python3-tk python3-pip \
     build-essential \
 	ca-certificates \

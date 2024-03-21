@@ -284,7 +284,7 @@ then
 			echo "========== Starting Mircrortps Agent =========="
 			gnome-terminal -- sh -c "bash -c \"$WS_PATH/scripts/run-rtps-agent.sh && exit; exec bash\""
 			echo "========== Starting SkyNet =========="
-			iexec sitl_container "cd /ws/SkyNet/build && gdb ./SkyNet"
+			iexec sitl_container "cd /ws/SkyNet/build && ./SkyNet"
 			iexec bfx_container "ps -eawf | grep px4 | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
 			iexec bfx_container "ps -eawf | grep px4-simulator | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
 			iexec sitl_container "ps -eawf | grep micrortps_agent | grep -v grep | awk '{print \$2}' | xargs -r kill -9"

@@ -13,7 +13,7 @@ cd ORBSlam3
 echo ""
 git config --global --add safe.directory /ws/ORBSlam3
 git fetch origin using_opencv44
-git checkout using_opencv44
+# git checkout using_opencv44
 git branch
 cd ..
 
@@ -32,12 +32,7 @@ fi
 cd ORBSlam2
 git config --global --add safe.directory /ws/ORBSlam2
 echo "build mode: $1"
-if [[ "$1" == "sitl" ]]
-then
-	git checkout vaibhav_covariance
-else
-	git checkout main_v1
-fi
+# git checkout main_v1
 git branch
 cd ..
 
@@ -110,7 +105,7 @@ else
 fi
 cd SkyNet
 git config --global --add safe.directory /ws/SkyNet
-git checkout main_v1
+# git checkout main_v1
 git submodule init
 git submodule update
 cd ../

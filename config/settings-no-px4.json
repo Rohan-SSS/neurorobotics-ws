@@ -4,6 +4,7 @@
   "LocalHostIp": "127.0.0.0",
   "ApiServerPort": 41452,
   "CameraDefaults": {
+    "X" : 0.0302200000733137, "Y":  -0.00740000000223517, "Z":  -0.0160199999809265,
     "CaptureSettings": [
       {   
         "ImageType": 0,

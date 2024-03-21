@@ -135,11 +135,11 @@ RUN cmake .. && \
 WORKDIR /
 
 RUN cd opencv && \
-    git checkout 4.x && mkdir build-4 && \
+    git checkout c3bb57a && mkdir build-4 && \
     cd ..
 
 RUN cd opencv_contrib && \
-    git checkout 4.x && \
+    git checkout  5fae408 && \
     cd ..
 
 WORKDIR /opencv/build-4
