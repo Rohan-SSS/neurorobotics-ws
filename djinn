@@ -52,34 +52,34 @@ then
 			then
 				echo "============ BUILDING Base Image ============="
 				image="skynet/base"
-				filepath="$WS_PATH/skynet-base/"
+				filepath="$WS_PATH/docker/skynet-base/"
 				container_name="skynet_container"
 			elif [[ "$3" == "ros" ]]
 			then
 				echo "============ BUILDING ROS Image ============="
 				image="skynet/ros"
-				filepath="$WS_PATH/skynet-ros/"
+				filepath="$WS_PATH/docker/skynet-ros/"
 				container_name="ros_container"
 				mode="ros"
 			elif [[ "$3" == "sitl" ]]
 			then
 				echo "============ BUILDING SITL Image ============="
 				image="skynet/base"
-				filepath="$WS_PATH/skynet-base/"
+				filepath="$WS_PATH/docker/skynet-base/"
 				container_name="sitl_container"
 				mode="sitl"
 			elif [[ "$3" == "vision-tools" ]]
 			then
 				echo "============ BUILDING Vision Tools Image ============="
 				image="vision-tools/dev"
-				filepath="$WS_PATH/vision-tools/"
+				filepath="$WS_PATH/docker/vision-tools/"
 				container_name="vision_tools_container"
 				mode="vision-tools"
 			elif [[ "$3" == "kalibr" ]]
 			then
 				echo "============ BUILDING Kalibr Image ============="
 				image="skynet/kalibr"
-				filepath="$WS_PATH/kalibr/"
+				filepath="$WS_PATH/docker/kalibr/"
 				container_name="kalibr_container"
 				mode="kalibr"
 			fi
@@ -97,11 +97,11 @@ then
 		else
 			echo "============ BUILDING Base Image ============="
 			image="skynet/base"
-			filepath="skynet-base/"
+			filepath="docker/skynet-base/"
 			$WS_PATH/scripts/docker-build.sh $platform $image $filepath 
 			echo "============ BUILDING ROS Image ============="
 			image="skynet/ros"
-			filepath="skynet-ros/"
+			filepath="docker/skynet-ros/"
 			$WS_PATH/scripts/docker-build.sh $platform $image $filepath 
 			container_name="ros_container"
 			mode="ros"
