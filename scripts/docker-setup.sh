@@ -127,13 +127,25 @@ else
 	echo $PWD
 	if [[ ! -d "ros_ws" ]]
 	then
-		GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:shandilya1b/skynet-ros.git ros_ws
+		GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:ideaForgePerceptionTeam/skynet-ros.git ros_ws
 	else
 		echo "ROS Workspace already present"
 	fi
 
 	echo ""
 
+	echo "=============== CLONING MESSAGE FILTER REPO ================="
+	echo $PWD
+	#mkdir -p ros_ws/src
+	cd ros_ws/src/
+	if [[ ! -d "message_filters" ]]
+	then
+		git clone git@github.com:shandilya1b/message_filters.git -b foxy
+	else
+		echo "Message filter already present"
+	fi
+	cd ../../
+	
 	echo "=============== CLONING CV BRIDGE REPO ================="
 	echo $PWD
 	#mkdir -p ros_ws/src

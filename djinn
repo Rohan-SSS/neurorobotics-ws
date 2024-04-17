@@ -155,6 +155,7 @@ then
 	if [[ -z "$2" ]]
 	then
 		echo "=========== BUILDING SkyNet And Packages ==========="
+		
 		iexec_ros ros_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
 	else
 		if [[  "$2" == "skynet" ]]
@@ -164,10 +165,12 @@ then
 		elif [[  "$2" == "skynet-ros" ]]
 		then
 			echo "=========== BUILDING SkyNet-ROS ==========="
+			echo $PWD
 			iexec_ros ros_container "./scripts/build.sh"
 		elif [[  "$2" == "ros-packages" ]]
 		then
 			echo "=========== BUILDING Packages ==========="
+			echo $PWD
 			iexec_ros ros_container "./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
 		elif [[  "$2" == "sitl" ]]
 		then
