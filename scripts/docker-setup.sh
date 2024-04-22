@@ -165,9 +165,4 @@ else
 	echo ""
 fi	
 
-echo "=============== CLONING KALIBR REPO ================="
-git clone https://github.com/ethz-asl/kalibr.git
-cd kalibr
-cp Dockerfile_ros1_20_04 Dockerfile
-
 echo "Done Setup"

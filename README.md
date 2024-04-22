@@ -40,6 +40,11 @@ To build Vision-Tools docker image and start the container:
 skynet-ws$ ./djinn setup docker vision-tools
 ```
 
+To build Kalibr docker image and start the container:
+```
+skynet-ws$ ./djinn setup docker kalibr
+```
+
 # Initialising SkyNet Docker Container and building inside Docker Container
 
 - **Run `xhost +` command on laptop terminal (no inside docker). This allows Pangolin inside docker to connect host’s X server.**
@@ -50,6 +55,7 @@ skynet-ws$ ./djinn setup docker vision-tools
     - To initialise **SkyNet only** container: `./djinn init base`
     - To initialise **SkyNet-ROS** container: `./djinn init ros`
     - To initialise **SITL** containers: `./djinn init sitl`
+    - To initialise **Kalibr** containers: `./djinn init kalibr`
 
 - To build ORBSlam2, ORBSlam3, AKAZESlam, SkyNet and/or SkyNet-ROS run the following commands according to need:
     - To build all of the above: `./djinn build`

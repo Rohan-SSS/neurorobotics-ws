@@ -31,6 +31,10 @@ iexec_ros(){
 			time docker container exec -it "$1" /bin/bash -l -c "source /opt/ros/${ROS_VERSION}/setup.bash && $2"
         }
 
+iexec_kalibr(){
+			time docker container exec -it "$1" /bin/bash -l -c "source /opt/ros/noetic/setup.bash && source \$WORKSPACE/devel/setup.bash && $2"
+        }
+
 cd $WS_PATH
 
 if [[ "$1" == "install" ]]
@@ -79,12 +83,19 @@ then
 			then
 				echo "============ BUILDING Kalibr Image ============="
 				image="skynet/kalibr"
-				filepath="$WS_PATH/docker/kalibr/"
+				filepath="$WS_PATH/ext/kalibr/"
 				container_name="kalibr_container"
 				mode="kalibr"
 			fi
 			if [[ "$mode" == "kalibr" ]]
 			then
+				echo "=============== CLONING KALIBR REPO ================="
+				mkdir -p $WS_PATH/ext
+				cd $WS_PATH/ext
+				git clone https://github.com/ethz-asl/kalibr.git
+				cd $WS_PATH/ext/kalibr
+				sudo cp Dockerfile_ros1_20_04 Dockerfile
+				cd $WS_PATH
 				$WS_PATH/scripts/docker-build.sh $platform $image $filepath "WS_PATH=$WS_PATH" 
 			else
 				$WS_PATH/scripts/docker-build.sh $platform $image $filepath 
@@ -137,10 +148,10 @@ then
 			$WS_PATH/scripts/start.sh $WS_PATH ros_container skynet/ros
 			iexec_ros ros_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
 			iexec_ros ros_container "./scripts/build_ros_packages.sh"
-		elif [[ "$3" == "kalibr" ]]
+		elif [[ "$2" == "kalibr" ]]
 		then
 			echo "============ Initialising Kalibr Container ============="
-			$WS_PATH/scripts/start.sh $WS_PATH/skynet-kalibr kalibr_container skynet/kalibr
+			$WS_PATH/scripts/start.sh $WS_PATH kalibr_container skynet/kalibr
 		fi
 	else
 		$WS_PATH/scripts/start.sh $WS_PATH ros_container skynet/ros
@@ -235,6 +246,13 @@ then
 		else
 			iexec_ros ros_container "cd ros_ws && source install/setup.bash && ros2 launch sensors sensors_launch.py"
 		fi
+	elif [[ "calibration" ]]
+	then
+		echo "Starting Calibration Process"
+		iexec_kalibr kalibr_contaienr "cd /ws/ros_ws/kalibr_data/ && ln -s synced/infrared cam0"
+		iexec_kalibr kalibr_container "cd /ws/ros_ws/kalibr_data/ && ln -s synced/thermal cam1"
+		iexec_kalibr kalibr_container "cd /ws/ros_ws/kalibr_data/ && rosrun kalibr kalibr_bagcreater --folder ./ --output-bag skynet.bag"
+		iexec_kalibr kalibr_container "cd /ws/ros_ws/kalibr_data/ && rosrun kalibr kalibr_calibrate_cameras --bag skynet.bag --topics /cam0/image_raw /cam1/image_raw --models pinhole-radtan pinhole-radtan --target april_6x6.yaml"
 	elif [[ "$2" == "skynet" ]]
 	then
 		iexec skynet_container "cd SkyNet/build && nohup ./SkyNet > skynet.log"
