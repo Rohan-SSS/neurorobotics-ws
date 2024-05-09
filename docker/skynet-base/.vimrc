@@ -32,6 +32,7 @@ set wildignorecase         " Ignore the case sensitive when using tab autocomple
 set autoread               " Automatically update the new change in the buffer.
 set cino=N-s               " c++ namespace indentation
 set cursorline             " current line highlighting
+set shell=/bin/bash
 
 set t_Co=256
 
