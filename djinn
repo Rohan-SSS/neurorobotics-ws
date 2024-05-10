@@ -1,15 +1,13 @@
 #!/bin/bash
 
-VERSION=0.0.1
-ROS_VERSION="foxy"
-BFT_IP="192.168.26.78"
-BFT_PORT="14550"
+config_file=$NRT_WS/.djinn_config
+export $(grep -v '^#' $config_file | xargs)
 # Refer to the following link for information about state management in bash using a statefile
 # https://stackoverflow.com/questions/63084354/how-to-store-state-between-two-consecutive-runs-of-a-bash-script
 statefile="/tmp/djinn_state"
 last_run_sitl_env=""
 xhost +
-echo "WORKSPACE PATH: $WS_PATH"
+echo "WORKSPACE PATH: $NRT_WS"
 echo "DJINN MODE: $DJINN_MODE"
 
 save_state () {
@@ -35,7 +33,7 @@ iexec_kalibr(){
 			time docker container exec -it "$1" /bin/bash -l -c "source /opt/ros/noetic/setup.bash && source \$WORKSPACE/devel/setup.bash && $2"
         }
 
-cd $WS_PATH
+cd $NRT_WS
 
 if [[ "$1" == "install" ]]
 then
@@ -55,65 +53,58 @@ then
 			if [[ "$3" == "base" ]]
 			then
 				echo "============ BUILDING Base Image ============="
-				image="skynet/base"
-				filepath="$WS_PATH/docker/skynet-base/"
-				container_name="skynet_container"
+				image="nrt/base"
+				filepath="$NRT_WS/docker/base/"
+				container_name="nrt_container"
 			elif [[ "$3" == "ros" ]]
 			then
 				echo "============ BUILDING ROS Image ============="
-				image="skynet/ros"
-				filepath="$WS_PATH/docker/skynet-ros/"
+				image="nrt/ros"
+				filepath="$NRT_WS/docker/ros/"
 				container_name="ros_container"
 				mode="ros"
 			elif [[ "$3" == "sitl" ]]
 			then
 				echo "============ BUILDING SITL Image ============="
-				image="skynet/base"
-				filepath="$WS_PATH/docker/skynet-base/"
+				image="nrt/base"
+				filepath="$NRT_WS/docker/base/"
 				container_name="sitl_container"
 				mode="sitl"
-			elif [[ "$3" == "vision-tools" ]]
-			then
-				echo "============ BUILDING Vision Tools Image ============="
-				image="vision-tools/dev"
-				filepath="$WS_PATH/docker/vision-tools/"
-				container_name="vision_tools_container"
-				mode="vision-tools"
 			elif [[ "$3" == "kalibr" ]]
 			then
 				echo "============ BUILDING Kalibr Image ============="
-				image="skynet/kalibr"
-				filepath="$WS_PATH/ext/kalibr/"
+				image="nrt/kalibr"
+				filepath="$NRT_WS/ext/kalibr/"
 				container_name="kalibr_container"
 				mode="kalibr"
 			fi
 			if [[ "$mode" == "kalibr" ]]
 			then
 				echo "=============== CLONING KALIBR REPO ================="
-				mkdir -p $WS_PATH/ext
-				cd $WS_PATH/ext
+				mkdir -p $NRT_WS/ext
+				cd $NRT_WS/ext
 				git clone https://github.com/ethz-asl/kalibr.git
-				cd $WS_PATH/ext/kalibr
+				cd $NRT_WS/ext/kalibr
 				sudo cp Dockerfile_ros1_20_04 Dockerfile
-				cd $WS_PATH
-				$WS_PATH/scripts/docker-build.sh $platform $image $filepath "WS_PATH=$WS_PATH" 
+				cd $NRT_WS
+				$NRT_WS/scripts/docker-build.sh $platform $image $filepath "NRT_WS=$NRT_WS" 
 			else
-				$WS_PATH/scripts/docker-build.sh $platform $image $filepath 
+				$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
 			fi
 
 			if [[ "${mode}" == "sitl" ]]
 			then
-				$WS_PATH/scripts/docker-build.sh $platform bfx/test $WS_PATH/ext/bfx 
+				$NRT_WS/scripts/docker-build.sh $platform bfx/test $NRT_WS/ext/bfx 
 			fi
 		else
 			echo "============ BUILDING Base Image ============="
-			image="skynet/base"
-			filepath="docker/skynet-base/"
-			$WS_PATH/scripts/docker-build.sh $platform $image $filepath 
+			image="nrt/base"
+			filepath="docker/base/"
+			$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
 			echo "============ BUILDING ROS Image ============="
-			image="skynet/ros"
-			filepath="docker/skynet-ros/"
-			$WS_PATH/scripts/docker-build.sh $platform $image $filepath 
+			image="nrt/ros"
+			filepath="docker/ros/"
+			$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
 			container_name="ros_container"
 			mode="ros"
 		fi
@@ -125,37 +116,34 @@ then
 	mode="ros"
 	if [[ -n "$2" ]]
 	then
-		if [[ "$2" == "vision-tools"  ]]
+		if [[ "$2" == "base"  ]]
 		then
-			$WS_PATH/scripts/start.sh $WS_PATH vision_tools_container vision-tools/dev
-		elif [[ "$2" == "base"  ]]
-		then
-			echo "=============== Initialising SkyNet Container ================"
-			$WS_PATH/scripts/start.sh $WS_PATH skynet_container skynet/base
-			iexec skynet_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
-			iexec skynet_container "./scripts/build.sh $2"
+			echo "=============== Initialising NRT Base Container ================"
+			$NRT_WS/scripts/start.sh $NRT_WS nrt_container nrt/base
+			iexec nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
+			iexec nrt_container "./scripts/build.sh $2"
 		elif [[ "$2" == "sitl"  ]]
 		then
 			echo "=============== Initialising SITL Container ================"
-			$WS_PATH/scripts/start.sh $WS_PATH sitl_container skynet/base
-			$WS_PATH/scripts/start.sh $WS_PATH bfx_container bfx/test
+			$NRT_WS/scripts/start.sh $NRT_WS sitl_container nrt/base
+			$NRT_WS/scripts/start.sh $NRT_WS bfx_container bfx/test
 			iexec sitl_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
 			iexec sitl_container "/ws/scripts/build.sh $2"
 			iexec bfx_container "./scripts/build-bfx-deps.sh"
 		elif [[ "$2" == "ros"  ]]
 		then
-			echo "=============== Initialising SkyNet-ROS Container ================"
-			$WS_PATH/scripts/start.sh $WS_PATH ros_container skynet/ros
+			echo "=============== Initialising NRT ROS Container ================"
+			$NRT_WS/scripts/start.sh $NRT_WS ros_container nrt/ros
 			iexec_ros ros_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
 			iexec_ros ros_container "./scripts/build_ros_packages.sh"
 		elif [[ "$2" == "kalibr" ]]
 		then
 			echo "============ Initialising Kalibr Container ============="
-			$WS_PATH/scripts/start.sh $WS_PATH kalibr_container skynet/kalibr
+			$NRT_WS/scripts/start.sh $NRT_WS kalibr_container nrt/kalibr
 		fi
 	else
-		$WS_PATH/scripts/start.sh $WS_PATH ros_container skynet/ros
-		$WS_PATH/scripts/start.sh $WS_PATH vision_tools_container vision-tools/dev
+		$NRT_WS/scripts/start.sh $NRT_WS ros_container nrt/ros
+		$NRT_WS/scripts/start.sh $NRT_WS vision_tools_container vision-tools/dev
 		iexec_ros ros_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
 		iexec_ros ros_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
 	fi
@@ -165,17 +153,17 @@ then
 	clear
 	if [[ -z "$2" ]]
 	then
-		echo "=========== BUILDING SkyNet And Packages ==========="
+		echo "=========== BUILDING NRT And related Packages ==========="
 		
 		iexec_ros ros_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
 	else
-		if [[  "$2" == "skynet" ]]
+		if [[  "$2" == "nrt" ]]
 		then
-			echo "=========== BUILDING SkyNet ==========="
-			iexec skynet_container "./scripts/build.sh"
-		elif [[  "$2" == "skynet-ros" ]]
+			echo "=========== BUILDING NRT ==========="
+			iexec nrt_container "./scripts/build.sh"
+		elif [[  "$2" == "ros" ]]
 		then
-			echo "=========== BUILDING SkyNet-ROS ==========="
+			echo "=========== BUILDING NRT ROS ==========="
 			echo $PWD
 			iexec_ros ros_container "./scripts/build.sh"
 		elif [[  "$2" == "ros-packages" ]]
@@ -203,24 +191,24 @@ then
 	then
 		if [[ "$3" == "AirSimNH" ]]
 		then
-			nohup $WS_PATH/envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$WS_PATH/config/settings-no-px4.json > $WS_PATH/airsimnh.log &
+			nohup $NRT_WS/envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$NRT_WS/config/settings-no-px4.json > $NRT_WS/airsimnh.log &
 		
 		elif [[ "$3" == "LandscapeMountain" ]]
 		then
-			nohup $WS_PATH/envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -renderoffscreen -settings=$WS_PATH/config/settings-no-px4.json > $WS_PATH/airsimmountain.log &
+			nohup $NRT_WS/envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -renderoffscreen -settings=$NRT_WS/config/settings-no-px4.json > $NRT_WS/airsimmountain.log &
 		elif [[ "$3" == "ZhangJiajie" ]]
 		then
-			nohup $WS_PATH/envs/ZhangJiajie/LinuxNoEditor/ZhangJiajie.sh -renderoffscreen -settings=$WS_PATH/config/settings-no-px4.json > $WS_PATH/airsimmountain.log &
+			nohup $NRT_WS/envs/ZhangJiajie/LinuxNoEditor/ZhangJiajie.sh -renderoffscreen -settings=$NRT_WS/config/settings-no-px4.json > $NRT_WS/airsimmountain.log &
 		elif [[ "$3" == "TrapCam" ]]
 		then
-			nohup $WS_PATH/envs/TrapCam/LinuxNoEditor/TrapCam.sh -WINDOWED -ResX=640 -ResY=480 -settings=$WS_PATH/config/settings-no-px4.json > $WS_PATH/airsimtrap.log &
+			nohup $NRT_WS/envs/TrapCam/LinuxNoEditor/TrapCam.sh -WINDOWED -ResX=640 -ResY=480 -settings=$NRT_WS/config/settings-no-px4.json > $NRT_WS/airsimtrap.log &
 		elif [[ "$3" == "Blocks" ]]
 		then
-			nohup $WS_PATH/envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -WINDOWED -ResX=640 -ResY=480 -settings=$WS_PATH/config/settings-no-px4.json > $WS_PATH/airsimblocks.log &
+			nohup $NRT_WS/envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -WINDOWED -ResX=640 -ResY=480 -settings=$NRT_WS/config/settings-no-px4.json > $NRT_WS/airsimblocks.log &
 		elif [[ "$3" == "Africa" ]]
 		then
 			echo "Starting Africa"
-			nohup $WS_PATH/envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh  -WINDOWED -ResX=640 -ResY=480 -settings=$WS_PATH/config/settings-africa.json > $WS_PATH/airsimafrica.log &
+			nohup $NRT_WS/envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh  -WINDOWED -ResX=640 -ResY=480 -settings=$NRT_WS/config/settings-africa.json > $NRT_WS/airsimafrica.log &
 		fi
 		sleep 5
 		last_run_sitl_env="$3"
@@ -251,12 +239,8 @@ then
 		echo "Starting Calibration Process"
 		iexec_kalibr kalibr_contaienr "cd /ws/ros_ws/kalibr_data/ && ln -s synced/infrared cam0"
 		iexec_kalibr kalibr_container "cd /ws/ros_ws/kalibr_data/ && ln -s synced/thermal cam1"
-		iexec_kalibr kalibr_container "cd /ws/ros_ws/kalibr_data/ && rosrun kalibr kalibr_bagcreater --folder ./ --output-bag skynet.bag"
-		iexec_kalibr kalibr_container "cd /ws/ros_ws/kalibr_data/ && rosrun kalibr kalibr_calibrate_cameras --bag skynet.bag --topics /cam0/image_raw /cam1/image_raw --models pinhole-radtan pinhole-radtan --target april_6x6.yaml"
-	elif [[ "$2" == "skynet" ]]
-	then
-		iexec skynet_container "cd SkyNet/build && nohup ./SkyNet > skynet.log"
-		# iexec skynet_container "cd SkyNet/build && gdb ./SkyNet"
+		iexec_kalibr kalibr_container "cd /ws/ros_ws/kalibr_data/ && rosrun kalibr kalibr_bagcreater --folder ./ --output-bag nrt.bag"
+		iexec_kalibr kalibr_container "cd /ws/ros_ws/kalibr_data/ && rosrun kalibr kalibr_calibrate_cameras --bag nrt.bag --topics /cam0/image_raw /cam1/image_raw --models pinhole-radtan pinhole-radtan --target april_6x6.yaml"
 	elif [[ "$2" == "sitl" ]]
 	then
 		# echo "========== Starting UP QGC =========="	
@@ -265,60 +249,35 @@ then
 		echo "========== Starting AIRSIM =========="
 		if [[ "$3" == "AirSimNH" ]]
 		then
-			nohup $WS_PATH/envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$WS_PATH/config/settings.json > $WS_PATH/airsimnh.log &
+			nohup $NRT_WS/envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$NRT_WS/config/settings.json > $NRT_WS/airsimnh.log &
 		elif [[ "$3" == "LandscapeMountain" ]]
 		then
-			nohup $WS_PATH/envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -WINDOWED -ResX=640 -ResY=480 -settings=$WS_PATH/config/settings.json > $WS_PATH/airsimmountain.log &
+			nohup $NRT_WS/envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -WINDOWED -ResX=640 -ResY=480 -settings=$NRT_WS/config/settings.json > $NRT_WS/airsimmountain.log &
 		elif [[ "$3" == "ZhangJiajie" ]]
 		then
-			nohup $WS_PATH/envs/ZhangJiajie/LinuxNoEditor/ZhangJiajie.sh -WINDOWED -ResX=640 -ResY=480 -settings=$WS_PATH/config/settings.json > $WS_PATH/airsimzhang.log &
+			nohup $NRT_WS/envs/ZhangJiajie/LinuxNoEditor/ZhangJiajie.sh -WINDOWED -ResX=640 -ResY=480 -settings=$NRT_WS/config/settings.json > $NRT_WS/airsimzhang.log &
 		elif [[ "$3" == "TrapCam" ]]
 		then
-			nohup $WS_PATH/envs/TrapCam/LinuxNoEditor/TrapCam.sh -WINDOWED -ResX=640 -ResY=480 -settings=$WS_PATH/config/settings-trap.json > $WS_PATH/airsimtrap.log &
+			nohup $NRT_WS/envs/TrapCam/LinuxNoEditor/TrapCam.sh -WINDOWED -ResX=640 -ResY=480 -settings=$NRT_WS/config/settings-trap.json > $NRT_WS/airsimtrap.log &
 		elif [[ "$3" == "Blocks" ]]
 		then
-			nohup $WS_PATH/envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -renderoffscreen -settings=$WS_PATH/config/settings.json > $WS_PATH/airsimblocks.log &
+			nohup $NRT_WS/envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -renderoffscreen -settings=$NRT_WS/config/settings.json > $NRT_WS/airsimblocks.log &
 		elif [[ "$3" == "Africa" ]]
 		then
-			nohup $WS_PATH/envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh -WINDOWED -ResX=640 -ResY=480  -settings=$WS_PATH/config/settings-africa.json >> $WS_PATH/airsimafrica.log &
+			nohup $NRT_WS/envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh -WINDOWED -ResX=640 -ResY=480  -settings=$NRT_WS/config/settings-africa.json >> $NRT_WS/airsimafrica.log &
 		fi
 		last_run_sitl_env="$3"
 		save_state last_run_sitl_env
-
+		# TODO Need to figure out softwares for simulation mention of BFX 
+		# Since we are working with both land robots and drones to test our algorithms it is important to have simulation environments for the same
+		# Different simulatin environments will be needed for each use case that is served
 		if [[ "$DJINN_MODE" == "automation" ]]
 		then
-			echo "========== Starting BFX =========="
-			$WS_PATH/scripts/run-bfx.sh $DJINN_MODE
-			sleep 5
-
-			echo "========== Starting Mircrortps Agent =========="
-			$WS_PATH/scripts/run-rtps-agent.sh $DJINN_MODE
-
-			echo "========== Starting SkyNet =========="
-			xhost +
-			iexec sitl_container "nohup bash -c \"cd /ws/SkyNet/build && ./SkyNet > /ws/skynet.log &\""
 			save_state last_run_sitl_env
 		else
-			echo "========== Starting BFX =========="
-			gnome-terminal -- sh -c "bash -c \"$WS_PATH/scripts/run-bfx.sh && exit; exec bash\""
-			sleep 5
-			echo "========== Starting Mircrortps Agent =========="
-			gnome-terminal -- sh -c "bash -c \"$WS_PATH/scripts/run-rtps-agent.sh && exit; exec bash\""
-			echo "========== Starting SkyNet =========="
-			iexec sitl_container "cd /ws/SkyNet/build && ./SkyNet"
-			iexec bfx_container "ps -eawf | grep px4 | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
-			iexec bfx_container "ps -eawf | grep px4-simulator | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
-			iexec sitl_container "ps -eawf | grep micrortps_agent | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
-			ps -ef | grep run-bfx.sh | grep -v grep | awk '{print $2}' | xargs -r kill -9
-			ps -ef | grep run-rtps-agent.sh | grep -v grep | awk '{print $2}' | xargs -r kill -9
-			ps -ef | grep $last_run_sitl_env | grep -v grep | awk '{print $2}' | xargs -r kill -9
-			# ps -ef | grep QGroundControl | grep -v grep | awk '{print $2}' | xargs -r kill -9
 			last_run_sitl_env=""
 			save_state last_run_sitl_env
 		fi
-	elif [[ "$2" == "oracle" ]]
-	then
-		./scripts/start-oracle.sh
 	fi
 
 elif [[ $1 == "kill" ]]
@@ -327,12 +286,7 @@ then
 	if [[ "$2" == "sitl" ]]
 	then
 		echo "Killing SITL processes"
-		iexec bfx_container "ps -eawf | grep px4 | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
-		iexec bfx_container "ps -eawf | grep px4-simulator | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
-		iexec sitl_container "ps -eawf | grep micrortps_agent | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
-		iexec sitl_container "ps -eawf | grep SkyNet | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
-		ps -ef | grep run-bfx.sh | grep -v grep | awk '{print $2}' | xargs -r kill -9
-		ps -eawf | grep run-rtps-agent.sh | grep -v grep | awk '{print $2}' | xargs -r kill -9
+		iexec sitl_container "ps -eawf | grep NRT | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
 		# ps -ef | grep QGroundControl | grep -v grep | awk '{print $2}' | xargs -r kill -9
 		if [[ ! -z "$last_run_sitl_env"  ]]
 		then
@@ -357,7 +311,7 @@ then
 	then
 		docker stop "${2}_container"
 	else
-		docker stop ros_container skynet_container sitl_container vision_tools_container bfx_container
+		docker stop ros_container nrt_container sitl_container vision_tools_container bfx_container
 	fi
 
 

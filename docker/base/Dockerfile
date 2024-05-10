@@ -95,12 +95,12 @@ WORKDIR /
 
 RUN git clone https://github.com/opencv/opencv.git && \
     cd opencv && git config http.postBuffer 524288000 && \
-    git checkout 3.4 && \
+    git checkout 4.x && \
     cd ..
 
 RUN git clone https://github.com/opencv/opencv_contrib.git && \
     cd opencv_contrib && \
-    git checkout 3.4 && \
+    git checkout 4.x && \
     cd ..
 
 RUN git clone https://github.com/IntelRealSense/librealsense.git && \
@@ -110,12 +110,6 @@ RUN git clone https://github.com/IntelRealSense/librealsense.git && \
 
 RUN git config --global advice.detachedHead false && \
     git clone --recursive https://github.com/stevenlovegrove/Pangolin.git -b v0.8
-
-# Build OpenCV
-WORKDIR /opencv/build
-RUN cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=$(python3 -c "import sys; print(sys.prefix)") -D PYTHON3_EXECUTABLE=$(which python3) -D PYTHON_DEFAULT_EXECUTABLE=$(which python3) -D WITH_GTK=ON -D WITH_FFMPEG=ON -D BUILD_EXAMPLES=ON -D INSTALL_C_EXAMPLES=OFF -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -D INSTALL_PYTHON_EXAMPLES=ON -D HAVE_opencv_python3=ON .. && \
-    make -j4 && \
-    make install
 
 # Build librealsense 
 WORKDIR /librealsense/
@@ -135,15 +129,15 @@ RUN cmake .. && \
 WORKDIR /
 
 RUN cd opencv && \
-    git checkout c3bb57a && mkdir build-4 && \
+    git checkout c3bb57a && mkdir build && \
     cd ..
 
 RUN cd opencv_contrib && \
     git checkout  5fae408 && \
     cd ..
 
-WORKDIR /opencv/build-4
-RUN cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=$(python3 -c "import sys; print(sys.prefix)") -D PYTHON3_EXECUTABLE=$(which python3) -D PYTHON_DEFAULT_EXECUTABLE=$(which python3) -D WITH_GTK=ON -D WITH_FFMPEG=ON -D BUILD_EXAMPLES=ON -D INSTALL_C_EXAMPLES=OFF -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -D INSTALL_PYTHON_EXAMPLES=ON -D HAVE_opencv_python3=ON .. && \
+WORKDIR /opencv/build
+RUN cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=$(python3 -c "import sys; print(sys.prefix)") -D PYTHON3_EXECUTABLE=$(which python3) -D PYTHON_DEFAULT_EXECUTABLE=$(which python3) -D WITH_GTK=ON -D WITH_FFMPEG=ON -D BUILD_EXAMPLES=ON -D INSTALL_C_EXAMPLES=OFF -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -D INSTALL_PYTHON_EXAMPLES=ON -D HAVE_opencv_python3=ON -D WITH_GSTREAMER=ON .. && \
     make -j4 && \
     make install
 

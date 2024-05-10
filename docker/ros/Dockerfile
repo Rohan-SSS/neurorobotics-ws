@@ -1,4 +1,4 @@
-FROM skynet/base:latest
+FROM nrt/base:latest
 
 # setup timezone
 RUN echo 'Asia/Kolkata' > /etc/timezone
