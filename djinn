@@ -42,6 +42,19 @@ then
 
 elif [[ "$1" == "setup" ]]
 then
+	if [[ ! -d ".ssh" ]]
+	then
+		mkdir .ssh 
+		cd .ssh
+		read -p "Enter email address for github: " email
+		read -p "Enter username for dockerhub: " name
+		echo "userEmail="$email >> $config_file 
+		echo "userName="$name >> $config_file 
+		ssh-keygen -q -t rsa -C "$email" -N "" -f id_rsa <<<y >/dev/null 2>&1
+		cd -
+	fi
+	echo "Github Email: $userEmail"
+	echo "Dockerhub ID: $userName"
 	if [[ "$2" == "docker" ]]
 	then
 		platform="linux/arm64/v8,linux/amd64"
@@ -53,27 +66,27 @@ then
 			if [[ "$3" == "base" ]]
 			then
 				echo "============ BUILDING Base Image ============="
-				image="nrt/base"
+				image="$userName/nrt:base"
 				filepath="$NRT_WS/docker/base/"
-				container_name="nrt_container"
-			elif [[ "$3" == "ros" ]]
+				container_name="base_container"
+			elif [[ "$3" == "nrt" ]]
 			then
 				echo "============ BUILDING ROS Image ============="
-				image="nrt/ros"
+				image="$userName/nrt:ros"
 				filepath="$NRT_WS/docker/ros/"
-				container_name="ros_container"
+				container_name="nrt_container"
 				mode="ros"
 			elif [[ "$3" == "sitl" ]]
 			then
 				echo "============ BUILDING SITL Image ============="
-				image="nrt/base"
+				image="$userName/nrt:base"
 				filepath="$NRT_WS/docker/base/"
 				container_name="sitl_container"
 				mode="sitl"
 			elif [[ "$3" == "kalibr" ]]
 			then
 				echo "============ BUILDING Kalibr Image ============="
-				image="nrt/kalibr"
+				image="$userName/nrt:kalibr"
 				filepath="$NRT_WS/ext/kalibr/"
 				container_name="kalibr_container"
 				mode="kalibr"
@@ -98,54 +111,52 @@ then
 			fi
 		else
 			echo "============ BUILDING Base Image ============="
-			image="nrt/base"
+			image="$userName/nrt:base"
 			filepath="docker/base/"
 			$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
 			echo "============ BUILDING ROS Image ============="
-			image="nrt/ros"
+			image="$userName/nrt:ros"
 			filepath="docker/ros/"
 			$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
-			container_name="ros_container"
-			mode="ros"
 		fi
 	fi
 
-
-elif [[ "$1" == "init" ]]
+elif [[ "$1" == "up" ]]
 then
 	mode="ros"
+	echo "username: $userName"
+	echo "email: $userEmail"
 	if [[ -n "$2" ]]
 	then
+		
 		if [[ "$2" == "base"  ]]
 		then
 			echo "=============== Initialising NRT Base Container ================"
-			$NRT_WS/scripts/start.sh $NRT_WS nrt_container nrt/base
-			iexec nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
-			iexec nrt_container "./scripts/build.sh $2"
+			$NRT_WS/scripts/start.sh $NRT_WS base_container shandilya1998/nrt:base $PUBLIC_KEY
+			iexec base_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2 $userEmail $userName" 
+			iexec base_container "./scripts/build.sh $2"
 		elif [[ "$2" == "sitl"  ]]
 		then
 			echo "=============== Initialising SITL Container ================"
-			$NRT_WS/scripts/start.sh $NRT_WS sitl_container nrt/base
-			$NRT_WS/scripts/start.sh $NRT_WS bfx_container bfx/test
-			iexec sitl_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
+			$NRT_WS/scripts/start.sh $NRT_WS sitl_container shandilya1998/nrt:base $PUBLIC_KEY
+			iexec sitl_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2 $userEmail $userName" 
 			iexec sitl_container "/ws/scripts/build.sh $2"
-			iexec bfx_container "./scripts/build-bfx-deps.sh"
-		elif [[ "$2" == "ros"  ]]
+		elif [[ "$2" == "nrt"  ]]
 		then
 			echo "=============== Initialising NRT ROS Container ================"
-			$NRT_WS/scripts/start.sh $NRT_WS ros_container nrt/ros
-			iexec_ros ros_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
-			iexec_ros ros_container "./scripts/build_ros_packages.sh"
+			$NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:ros
+			iexec_ros nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2 $userEmail $userName" 
+			iexec_ros nrt_container "./scripts/build_ros_packages.sh"
+			iexec sitl_container "/ws/scripts/build.sh $2"
 		elif [[ "$2" == "kalibr" ]]
 		then
 			echo "============ Initialising Kalibr Container ============="
-			$NRT_WS/scripts/start.sh $NRT_WS kalibr_container nrt/kalibr
+			$NRT_WS/scripts/start.sh $NRT_WS kalibr_container shandilya1998/nrt:kalibr
 		fi
 	else
-		$NRT_WS/scripts/start.sh $NRT_WS ros_container nrt/ros
-		$NRT_WS/scripts/start.sh $NRT_WS vision_tools_container vision-tools/dev
-		iexec_ros ros_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2" 
-		iexec_ros ros_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
+		$NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:ros
+		iexec_ros nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2 $userEmail $userName" 
+		iexec_ros nrt_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
 	fi
 
 elif [[ "$1" == "build" ]]
@@ -155,7 +166,7 @@ then
 	then
 		echo "=========== BUILDING NRT And related Packages ==========="
 		
-		iexec_ros ros_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
+		iexec_ros nrt_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
 	else
 		if [[  "$2" == "nrt" ]]
 		then
@@ -165,12 +176,12 @@ then
 		then
 			echo "=========== BUILDING NRT ROS ==========="
 			echo $PWD
-			iexec_ros ros_container "./scripts/build.sh"
+			iexec_ros nrt_container "./scripts/build.sh"
 		elif [[  "$2" == "ros-packages" ]]
 		then
 			echo "=========== BUILDING Packages ==========="
 			echo $PWD
-			iexec_ros ros_container "./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
+			iexec_ros nrt_container "./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
 		elif [[  "$2" == "sitl" ]]
 		then
 			echo "=========== BUILDING SITL ==========="
@@ -216,10 +227,10 @@ then
 		save_state last_run_sitl_env
 		if [[ "$DJINN_MODE" == "automation" ]]
 		then
-			iexec_ros ros_container "cd ros_ws/ && source install/setup.bash && nohup ros2 run airsim_lib talker > /ws/airsim_survey_lib.log &"
+			iexec_ros nrt_container "cd ros_ws/ && source install/setup.bash && nohup ros2 run airsim_lib talker > /ws/airsim_survey_lib.log &"
 			save_state last_run_sitl_env
 		else
-			iexec_ros ros_container "cd ros_ws/ && source install/setup.bash && ros2 run airsim_lib talker"
+			iexec_ros nrt_container "cd ros_ws/ && source install/setup.bash && ros2 run airsim_lib talker"
 			ps -ef | grep $last_run_sitl_env | grep -v grep | awk '{print $2}' | xargs -r kill -9
 			last_run_sitl_env=""
 			save_state last_run_sitl_env
@@ -230,9 +241,9 @@ then
 		launch_file="sensors_launch.py"
 		if [[ -n "$3" ]]
 		then
-			iexec_ros ros_container "cd ros_ws && source install/setup.bash && ros2 launch sensors ${3}_launch.py"
+			iexec_ros nrt_container "cd ros_ws && source install/setup.bash && ros2 launch sensors ${3}_launch.py"
 		else
-			iexec_ros ros_container "cd ros_ws && source install/setup.bash && ros2 launch sensors sensors_launch.py"
+			iexec_ros nrt_container "cd ros_ws && source install/setup.bash && ros2 launch sensors sensors_launch.py"
 		fi
 	elif [[ "$2" == "calibration" ]]
 	then
@@ -299,7 +310,7 @@ then
 		then
 			ps -eawf | grep "$last_run_sitl_env" | grep -v grep | awk '{print $2}' | xargs -r kill -9
 		fi
-		iexec ros_container "ps -eawf | grep airsim_lib | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
+		iexec nrt_container "ps -eawf | grep airsim_lib | grep -v grep | awk '{print \$2}' | xargs -r kill -9"
 	elif [[ "$2" == "gqc" ]]
 	then
 		ps -ef | grep QGroundControl | grep -v grep | awk '{print $2}' | xargs -r kill -9
@@ -311,13 +322,23 @@ then
 	then
 		docker stop "${2}_container"
 	else
-		docker stop ros_container nrt_container sitl_container vision_tools_container bfx_container
+		docker stop base_container nrt_container sitl_container vision_tools_container bfx_container
 	fi
 
+elif [[ "$1" == "rmi" ]]
+then
+	if [[ -n "$2" ]]
+	then
+		if [[ "$2" == "all" ]]
+		then
+			docker images | grep -v grep |  tail -n +2 |  awk '{print $3}'  | xargs -r docker rmi -f
+		else
+			docker rmi -f "$2"
+		fi
+	fi
 
 elif [[ "$1" == "ps" ]]
 then
 	docker ps
 
 fi
-cd -

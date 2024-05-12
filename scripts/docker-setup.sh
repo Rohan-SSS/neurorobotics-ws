@@ -1,56 +1,35 @@
-git config --global --add safe.directory /ws/
+git config --global --add safe.directory /ws
 
-echo "============ CLONING ORBSlam3 repo ============="
-echo $PWD
-# https://serverfault.com/questions/447028/non-interactive-git-clone-ssh-fingerprint-prompt
-# https://stackoverflow.com/questions/7772190/passing-ssh-options-to-git-clone
-if [[ ! -d "ORBSlam3" ]]
-then
-	GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:UZ-SLAMLab/ORB_SLAM3.git
-else
-	echo "ORBSlam3 already present"
-fi
-cd ORBSlam3
-echo ""
-git config --global --add safe.directory /ws/ORBSlam3
-cd ..
-
-echo ""
-
-echo "============ CLONING NRT ROS repo ============="
-echo $PWD
-if [[ ! -d "ros_ws" ]]
-then
-	GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:shandilya1998/neurorobotics-toolkit.git ros_ws
-else
-	echo "ROS Workspace already present"
-fi
+# echo "============ CLONING ORBSlam3 repo ============="
+# echo $PWD
+# # https://serverfault.com/questions/447028/non-interactive-git-clone-ssh-fingerprint-prompt
+# # https://stackoverflow.com/questions/7772190/passing-ssh-options-to-git-clone
+# if [[ ! -d "ORB_SLAM3" ]]
+# then
+# 	GIT_SSH_COMMAND="ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no" git clone git@github.com:shandilya1998/ORB_SLAM3.git 
+# else
+# 	echo "ORB_SLAM3 already present"
+# fi
+# cd ORB_SLAM3
+# git checkout c++14_comp
+# echo ""
+# git config --global --add safe.directory /ws/ORB_SLAM3
+# cd /ws
 
 echo ""
 
-echo "=============== CLONING MESSAGE FILTER REPO ================="
-echo $PWD
-#mkdir -p ros_ws/src
-cd ros_ws/src/
-if [[ ! -d "message_filters" ]]
-then
-	git clone git@github.com:shandilya1998/message_filters.git -b foxy
-else
-	echo "Message filter already present"
-fi
-cd ../../
+echo "in docker-setup.sh email: $2"
+echo "in docker-setup.sh username: $3"
 
-echo "=============== CLONING CV BRIDGE REPO ================="
-echo $PWD
-#mkdir -p ros_ws/src
-cd ros_ws/src/
-if [[ ! -d "vision_opencv" ]]
-then
-	git clone https://github.com/ros-perception/vision_opencv.git -b foxy
-else
-	echo "Vision OpenCV already present"
-fi
-cd ../../
+git submodule init
+git submodule update --recursive
+git config --global --add safe.directory /ws/ros_ws
+
+git config --global user.email "$2"
+git config --global user.name "$3"
+git config --global core.editor vim
+
+echo ""
 
 echo ""
 

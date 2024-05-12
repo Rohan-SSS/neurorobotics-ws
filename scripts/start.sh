@@ -5,7 +5,7 @@ image="$3"
 echo $name
 echo $image
 docker run --rm -d -it -v $1:/ws/ \
-			-v ~/.ssh:/root/.ssh \
+			-v ./.ssh:/root/.ssh \
 			-v /dev:/dev \
     		--device-cgroup-rule "c 81:* rmw" \
     		--device-cgroup-rule "c 189:* rmw" \

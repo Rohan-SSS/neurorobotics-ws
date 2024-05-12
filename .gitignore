@@ -1,8 +1,5 @@
-ORBSlam2
-ORBSlam3
-AKAZESlam
+ORB_SLAM3
 librealsense
-SkyNet
 envs/
 Pangolin/
 VisionTools/
@@ -10,9 +7,9 @@ kalibr/
 imu-tools/
 *__pycache__/
 *libSensor.so
-ros_ws/
 temp/
 *.log
 vim/
 *.out
 ext
+.ssh
