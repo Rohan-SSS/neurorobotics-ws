@@ -78,20 +78,23 @@ RUN chmod +x /ros_entrypoint.sh
 RUN python3 -m pip install msgpack-rpc-python numpy
 RUN python3 -m pip install airsim
 
-# WORKDIR /
-# RUN cd opencv && \
-#     git checkout 4.x && mkdir -p build-4 && \
-#     cd ..
-#
-# RUN cd opencv_contrib && \
-#     git checkout 4.x && \
-#     cd ..
-#
-# WORKDIR /opencv/build-4
-# RUN cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=$(python3 -c "import sys; print(sys.prefix)") -D PYTHON3_EXECUTABLE=$(which python3) -D PYTHON_DEFAULT_EXECUTABLE=$(which python3) -D WITH_GTK=ON -D WITH_FFMPEG=ON -D BUILD_EXAMPLES=ON -D INSTALL_C_EXAMPLES=OFF -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -D INSTALL_PYTHON_EXAMPLES=ON -D HAVE_opencv_python3=ON .. && \
-#     make -j4 && \
-#     make install
-# RUN make install
+WORKDIR /
+RUN cd opencv && \
+    git checkout c3bb57a && mkdir -p build-4 && \
+    cd ..
+
+RUN cd opencv_contrib && \
+    git checkout 5fae408 && \
+    cd ..
+
+WORKDIR /opencv/build-4
+RUN cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=$(python3 -c "import sys; print(sys.prefix)") -D PYTHON3_EXECUTABLE=$(which python3) -D PYTHON_DEFAULT_EXECUTABLE=$(which python3) -D WITH_GTK=ON -D WITH_FFMPEG=ON -D BUILD_EXAMPLES=ON -D INSTALL_C_EXAMPLES=OFF -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -D INSTALL_PYTHON_EXAMPLES=ON -D HAVE_opencv_python3=ON .. && \
+    make -j4 && \
+    make install
+RUN make install
+
+RUN apt-get update && \
+	apt-get install -y ros-foxy-gazebo-ros-pkgs
 
 WORKDIR /ws
 ENTRYPOINT ["/ros_entrypoint.sh"]

@@ -147,7 +147,6 @@ then
 			$NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:ros
 			iexec_ros nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2 $userEmail $userName" 
 			iexec_ros nrt_container "./scripts/build_ros_packages.sh"
-			iexec sitl_container "/ws/scripts/build.sh $2"
 		elif [[ "$2" == "kalibr" ]]
 		then
 			echo "============ Initialising Kalibr Container ============="
@@ -193,7 +192,12 @@ elif [[  "$1" == "exec" ]]
 then
 	# djinn exec "cd ros_ws/src/ && ros2 pkg create --build-type ament_cmake Sensors" for creating ros2 packages
 	# echo "${2}_container"
-	iexec "${2}_container" "$3"
+	if [[ "$2" == "nrt" ]]
+	then
+		iexec_ros "${2}_container" $3
+	else
+		iexec "${2}_container" "$3"
+	fi
 
 elif [[  "$1" == "start" ]]
 then
