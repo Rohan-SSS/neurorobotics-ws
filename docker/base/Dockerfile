@@ -14,9 +14,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 # setup timezone
 RUN echo 'Asia/Kolkata' > /etc/timezone
 RUN ln -snf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime
-RUN add-apt-repository universe
 RUN apt-get update && \
-    apt-get install -q -y --no-install-recommends tzdata && \
+    apt-get install -q -y --no-install-recommends tzdata gpg-agent && \
     rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
@@ -36,6 +35,10 @@ RUN apt update && \
 	checkinstall \
 	python3-pip \
 	python3-dev \
+    libglfw3-dev \
+    libgl1-mesa-dev \
+    libglu1-mesa-dev \
+    libglew-dev \
     udev \
     sudo \
     gcc-9 \
@@ -50,7 +53,6 @@ RUN apt update && \
     dirmngr \
     gnupg2 \
     && rm -rf /var/lib/apt/lists/*
-    rm -rf /var/lib/apt/lists/*
 
 # Clone repositories
 WORKDIR /deps

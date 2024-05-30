@@ -1,15 +1,6 @@
-ORB_SLAM3
-librealsense
 envs/
-Pangolin/
-VisionTools/
-kalibr/
-imu-tools/
 *__pycache__/
-*libSensor.so
 temp/
 *.log
-vim/
 *.out
-ext
 .ssh

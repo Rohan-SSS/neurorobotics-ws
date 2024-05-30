@@ -44,14 +44,19 @@ elif [[ "$1" == "setup" ]]
 then
 	if [[ ! -d ".ssh" ]]
 	then
-		mkdir .ssh 
-		cd .ssh
 		read -p "Enter email address for github: " email
 		read -p "Enter username for dockerhub: " name
 		echo "userEmail="$email >> $config_file 
 		echo "userName="$name >> $config_file 
-		ssh-keygen -q -t rsa -C "$email" -N "" -f id_rsa <<<y >/dev/null 2>&1
-		cd -
+		if [[ ! -d "$HOME/.ssh" ]]
+		then
+			mkdir .ssh 
+			cd .ssh
+			ssh-keygen -q -t rsa -C "$email" -N "" -f id_rsa <<<y >/dev/null 2>&1
+			cd -
+		else
+			cp -r "$HOME/.ssh" $NRT_WS/.ssh
+		fi
 	fi
 	echo "Github Email: $userEmail"
 	echo "Dockerhub ID: $userName"
@@ -60,63 +65,35 @@ then
 		platform="linux/arm64/v8,linux/amd64"
 		mode="base"
 		echo "$3"
+		git submodule update --init --recursive
 		if [[ -n "$3" ]]
 		then
 			echo "============ BUILDING Image ============="
-			if [[ "$3" == "base" ]]
+			if [[ "$3" == "nrt" ]]
 			then
 				echo "============ BUILDING Base Image ============="
 				image="$userName/nrt:base"
 				filepath="$NRT_WS/docker/base/"
-				container_name="base_container"
-			elif [[ "$3" == "nrt" ]]
-			then
-				echo "============ BUILDING ROS Image ============="
-				image="$userName/nrt:ros"
-				filepath="$NRT_WS/docker/ros/"
 				container_name="nrt_container"
-				mode="ros"
-			elif [[ "$3" == "sitl" ]]
-			then
-				echo "============ BUILDING SITL Image ============="
-				image="$userName/nrt:base"
-				filepath="$NRT_WS/docker/base/"
-				container_name="sitl_container"
-				mode="sitl"
 			elif [[ "$3" == "kalibr" ]]
 			then
 				echo "============ BUILDING Kalibr Image ============="
 				image="$userName/nrt:kalibr"
-				filepath="$NRT_WS/ext/kalibr/"
+				filepath="$NRT_WS/ext/calibration/kalibr/"
 				container_name="kalibr_container"
 				mode="kalibr"
 			fi
 			if [[ "$mode" == "kalibr" ]]
 			then
 				echo "=============== CLONING KALIBR REPO ================="
-				mkdir -p $NRT_WS/ext
-				cd $NRT_WS/ext
-				git clone https://github.com/ethz-asl/kalibr.git
-				cd $NRT_WS/ext/kalibr
-				sudo cp Dockerfile_ros1_20_04 Dockerfile
-				cd $NRT_WS
 				$NRT_WS/scripts/docker-build.sh $platform $image $filepath "NRT_WS=$NRT_WS" 
 			else
 				$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
-			fi
-
-			if [[ "${mode}" == "sitl" ]]
-			then
-				$NRT_WS/scripts/docker-build.sh $platform bfx/test $NRT_WS/ext/bfx 
 			fi
 		else
 			echo "============ BUILDING Base Image ============="
 			image="$userName/nrt:base"
 			filepath="docker/base/"
-			$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
-			echo "============ BUILDING ROS Image ============="
-			image="$userName/nrt:ros"
-			filepath="docker/ros/"
 			$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
 		fi
 	fi
@@ -129,22 +106,10 @@ then
 	if [[ -n "$2" ]]
 	then
 		
-		if [[ "$2" == "base"  ]]
+		if [[ "$2" == "nrt"  ]]
 		then
 			echo "=============== Initialising NRT Base Container ================"
-			$NRT_WS/scripts/start.sh $NRT_WS base_container shandilya1998/nrt:base $PUBLIC_KEY
-			iexec base_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2 $userEmail $userName" 
-			iexec base_container "./scripts/build.sh $2"
-		elif [[ "$2" == "sitl"  ]]
-		then
-			echo "=============== Initialising SITL Container ================"
-			$NRT_WS/scripts/start.sh $NRT_WS sitl_container shandilya1998/nrt:base $PUBLIC_KEY
-			iexec sitl_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2 $userEmail $userName" 
-			iexec sitl_container "/ws/scripts/build.sh $2"
-		elif [[ "$2" == "nrt"  ]]
-		then
-			echo "=============== Initialising NRT ROS Container ================"
-			$NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:ros
+			$NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:base
 			iexec_ros nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2 $userEmail $userName" 
 			iexec_ros nrt_container "./scripts/build_ros_packages.sh"
 		elif [[ "$2" == "kalibr" ]]
@@ -169,22 +134,9 @@ then
 	else
 		if [[  "$2" == "nrt" ]]
 		then
-			echo "=========== BUILDING NRT ==========="
-			iexec nrt_container "./scripts/build.sh"
-		elif [[  "$2" == "ros" ]]
-		then
-			echo "=========== BUILDING NRT ROS ==========="
-			echo $PWD
-			iexec_ros nrt_container "./scripts/build.sh"
-		elif [[  "$2" == "ros-packages" ]]
-		then
 			echo "=========== BUILDING Packages ==========="
 			echo $PWD
-			iexec_ros nrt_container "./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
-		elif [[  "$2" == "sitl" ]]
-		then
-			echo "=========== BUILDING SITL ==========="
-			iexec sitl_container "./scripts/build.sh $2"
+			iexec_ros nrt_container "./scripts/build_ros_packages.sh"
 		fi
 	fi
 

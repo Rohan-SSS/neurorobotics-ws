@@ -1,3 +1,9 @@
 [submodule "ros_ws"]
 	path = ros_ws
 	url = git@github.com:shandilya1998/neurorobotics-toolkit.git
+[submodule "ext/calibration/kalibr"]
+	path = ext/calibration/kalibr
+	url = git@github.com:ethz-asl/kalibr.git
+[submodule "ext/calibration/allan_variance_ros"]
+	path = ext/calibration/allan_variance_ros
+	url = git@github.com:ori-drs/allan_variance_ros.git
