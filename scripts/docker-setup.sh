@@ -22,7 +22,7 @@ echo "in docker-setup.sh email: $2"
 echo "in docker-setup.sh username: $3"
 
 apply_safe_directory(){
-    echo "Applying Safe Directory command to folder: /ws/${1}${2}"
+    echo "Applying Safe Directory command to folder: ${1}${2}"
     git config --global --add safe.directory "${1}/${2}"
 }
 

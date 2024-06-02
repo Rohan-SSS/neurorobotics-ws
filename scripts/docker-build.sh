@@ -9,7 +9,7 @@ echo "Image File Path: $3"
 #docker buildx build $3 --progress plain --platform $1 -t $2 --push &> docker-build.log
 if [[ -n "$4" ]]
 then
-	docker build -t $2 $3 --network=host --add-host "raw.githubusercontent.com:151.101.84.133" --build-arg $4
+    docker buildx build $3 --progress plain --platform $1 -t $2 --push --build-arg $4
 else
-	docker build -t $2 $3 --network=host --add-host "raw.githubusercontent.com:151.101.84.133"
+    docker buildx build $3 --progress plain --platform $1 -t $2 --push
 fi

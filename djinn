@@ -62,10 +62,9 @@ then
 	echo "Dockerhub ID: $userName"
 	if [[ "$2" == "docker" ]]
 	then
-		platform="linux/arm64/v8,linux/amd64"
+		platform="linux/amd64,linux/arm/v7"
 		mode="base"
 		echo "$3"
-		git submodule update --init --recursive
 		if [[ -n "$3" ]]
 		then
 			echo "============ BUILDING Image ============="
@@ -103,6 +102,7 @@ then
 	mode="ros"
 	echo "username: $userName"
 	echo "email: $userEmail"
+	git submodule update --init --recursive
 	if [[ -n "$2" ]]
 	then
 		
