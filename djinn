@@ -73,7 +73,21 @@ then
 				echo "============ BUILDING Base Image ============="
 				image="$userName/nrt:base"
 				filepath="$NRT_WS/docker/base/"
-				container_name="nrt_container"
+				$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
+				echo "============ BUILDING Base AMD64 Image ============="
+				image="$userName/nrt:amd64"
+				filepath="$NRT_WS/docker/base/amd64"
+				platform="linux/amd64"
+				$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
+				echo "============ BUILDING Base ARMv7 Image ============="
+				image="$userName/nrt:armv7"
+				filepath="$NRT_WS/docker/base/armv7"
+				platform="linux/arm/v7"
+				echo "============ BUILDING Base NRT Image ============="
+				image="$userName/nrt:dev"
+				filepath="$NRT_WS/docker/nrt/"
+				platform="linux/amd64,linux/arm/v7"
+				$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
 			elif [[ "$3" == "kalibr" ]]
 			then
 				echo "============ BUILDING Kalibr Image ============="
@@ -81,13 +95,7 @@ then
 				filepath="$NRT_WS/ext/calibration/kalibr/"
 				container_name="kalibr_container"
 				mode="kalibr"
-			fi
-			if [[ "$mode" == "kalibr" ]]
-			then
-				echo "=============== CLONING KALIBR REPO ================="
 				$NRT_WS/scripts/docker-build.sh $platform $image $filepath "NRT_WS=$NRT_WS" 
-			else
-				$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
 			fi
 		else
 			echo "============ BUILDING Base Image ============="

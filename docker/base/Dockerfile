@@ -12,10 +12,10 @@ FROM ubuntu:22.04
 ENV DEBIAN_FRONTEND=noninteractive
 
 # setup timezone
-RUN echo 'Asia/Kolkata' > /etc/timezone
-RUN ln -snf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime
-RUN apt-get update && \
-    apt-get install -q -y --no-install-recommends tzdata gpg-agent && \
+RUN echo 'Asia/Kolkata' > /etc/timezone && \
+	ln -snf /usr/share/zoneinfo/Asia/Kolkata /etc/localtime && \
+	apt-get update && \
+	apt-get install -q -y --no-install-recommends tzdata gpg-agent && \
     rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
@@ -33,7 +33,6 @@ RUN apt update && \
 	libperl-dev \
     git\
 	checkinstall \
-	python3-pip \
 	python3-dev \
     libglfw3-dev \
     libgl1-mesa-dev \
@@ -52,18 +51,28 @@ RUN apt update && \
 	gdb \
     dirmngr \
     gnupg2 \
-    && rm -rf /var/lib/apt/lists/*
+	bash-completion \
+    python3-argcomplete \
+    python3-flake8 \
+    python3-flake8-blind-except \
+    python3-flake8-builtins \
+    python3-flake8-class-newline \
+    python3-flake8-comprehensions \
+    python3-flake8-deprecated \
+    python3-flake8-docstrings \
+    python3-flake8-import-order \
+    python3-flake8-quotes \
+    python3-pip \
+    python3-pytest-cov \
+    python3-pytest-mock \
+    python3-pytest-repeat \
+    python3-pytest-rerunfailures \
+    python3-pytest-runner \
+    python3-pytest-timeout && \
+    rm -rf /var/lib/apt/lists/*
 
 # Clone repositories
 WORKDIR /deps
-
-RUN git config --global advice.detachedHead false && \
-    git clone --recursive https://github.com/stevenlovegrove/Pangolin.git -b v0.8
-
-# Build Pangolin
-WORKDIR /deps/Pangolin/build
-RUN cmake .. && \
-    make -j6
 
 # WORKDIR /deps/opencv/build
 # RUN cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=$(python3 -c "import sys; print(sys.prefix)") -D PYTHON3_EXECUTABLE=$(which python3) -D PYTHON_DEFAULT_EXECUTABLE=$(which python3) -D WITH_GTK=ON -D WITH_FFMPEG=ON -D BUILD_EXAMPLES=ON -D INSTALL_C_EXAMPLES=OFF -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -D INSTALL_PYTHON_EXAMPLES=ON -D HAVE_opencv_python3=ON -D WITH_GSTREAMER=ON .. && \
@@ -109,42 +118,12 @@ RUN set -eux; \
        rm -rf "$GNUPGHOME"
 
 # setup sources.list
-RUN echo "deb [ signed-by=/usr/share/keyrings/ros2-latest-archive-keyring.gpg ] http://packages.ros.org/ros2/ubuntu jammy main" > /etc/apt/sources.list.d/ros2-latest.list
+RUN echo "deb [ signed-by=/usr/share/keyrings/ros2-latest-archive-keyring.gpg ] http://packages.ros.org/ros2/ubuntu noble main" > /etc/apt/sources.list.d/ros2-latest.list
 
 # setup environment
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
-
 ENV ROS_DISTRO humble
-
-# install ros2 packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-humble-ros-core=0.10.0-1* \
-    && rm -rf /var/lib/apt/lists/*
-
-# setup keys
-RUN set -eux; \
-       key='C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654'; \
-       export GNUPGHOME="$(mktemp -d)"; \
-       gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key"; \
-       mkdir -p /usr/share/keyrings; \
-       gpg --batch --export "$key" > /usr/share/keyrings/ros2-latest-archive-keyring.gpg; \
-       gpgconf --kill all; \
-       rm -rf "$GNUPGHOME"
-
-# setup sources.list
-RUN echo "deb [ signed-by=/usr/share/keyrings/ros2-latest-archive-keyring.gpg ] http://packages.ros.org/ros2/ubuntu jammy main" > /etc/apt/sources.list.d/ros2-latest.list
-
-# setup environment
-ENV LANG C.UTF-8
-ENV LC_ALL C.UTF-8
-
-ENV ROS_DISTRO humble
-
-# install ros2 packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-humble-ros-core=0.10.0-1* \
-    && rm -rf /var/lib/apt/lists/*
 
 # install bootstrap tools
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -153,12 +132,18 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     python3-colcon-common-extensions \
     python3-colcon-mixin \
     python3-rosdep \
+    python3-setuptools \
     python3-vcstool \
     && rm -rf /var/lib/apt/lists/*
 
+# This is a workaround for pytest not found causing builds to fail
+# Following RUN statements tests for regression of https://github.com/ros2/ros2/issues/722
+RUN pip3 freeze | grep pytest \
+    && python3 -m pytest --version
+
 # bootstrap rosdep
-RUN rosdep init && \
-  rosdep update --rosdistro $ROS_DISTRO
+RUN rosdep init \
+    && rosdep update
 
 # setup colcon mixin and metadata
 RUN colcon mixin add default \
@@ -168,28 +153,10 @@ RUN colcon mixin add default \
       https://raw.githubusercontent.com/colcon/colcon-metadata-repository/master/index.yaml && \
     colcon metadata update
 
-# install ros2 packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-humble-ros-base=0.10.0-1* \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-humble-desktop=0.10.0-1* \
-    && rm -rf /var/lib/apt/lists/*
-
-# install ros2 packages
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-humble-desktop-full=0.10.0-1* \
-    && rm -rf /var/lib/apt/lists/*
-
-## setup entrypoint
+# setup entrypoint
 COPY ./ros_entrypoint.sh /
-
 RUN chmod +x /ros_entrypoint.sh
 
-RUN ulimit -c unlimited
-RUN sysctl -w kernel.core_pattern="/tmp/%e_core.%p"
-WORKDIR /ws
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
 CMD ["bash"]
