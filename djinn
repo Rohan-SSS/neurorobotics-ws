@@ -99,8 +99,7 @@ then
 				container_name="nrt_container"
 				build_image $platform $image $filepath 
 				$NRT_WS/scripts/start.sh "$NRT_WS" "$container_name" "$image"
-                iexec nrt_container "echo \"Starting Submodule Update\" && git submodule update --recursive --init"
-                iexec nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $3 $USER_EMAIL $USER_NAME"
+                iexec nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $3 $userEmail $userName"
 			elif [[ "$3" == "kalibr" ]]
 			then
 				echo "============ BUILDING Kalibr Image ============="
