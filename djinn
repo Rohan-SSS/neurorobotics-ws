@@ -125,7 +125,7 @@ then
 		if [[ "$2" == "nrt"  ]]
 		then
 			echo "=============== Initialising NRT Base Container ================"
-			$NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:base
+			$NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:0.0.1
 			iexec_ros nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2 $userEmail $userName" 
 			iexec_ros nrt_container "./scripts/build_ros_packages.sh"
 		elif [[ "$2" == "kalibr" ]]
