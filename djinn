@@ -1,12 +1,11 @@
 #!/bin/bash
 
 config_file=$NRT_WS/.djinn_config
-export $(grep -v '^#' $config_file | xargs)
 # Refer to the following link for information about state management in bash using a statefile
 # https://stackoverflow.com/questions/63084354/how-to-store-state-between-two-consecutive-runs-of-a-bash-script
 statefile="/tmp/djinn_state"
 last_run_sitl_env=""
-xhost +
+# xhost +
 echo "WORKSPACE PATH: $NRT_WS"
 echo "DJINN MODE: $DJINN_MODE"
 
@@ -26,12 +25,25 @@ iexec(){
         }
 
 iexec_ros(){
+			export $(grep -v '^#' $config_file | xargs)
 			time docker container exec -it "$1" /bin/bash -l -c "source /opt/ros/${ROS_VERSION}/setup.bash && $2"
         }
 
 iexec_kalibr(){
 			time docker container exec -it "$1" /bin/bash -l -c "source /opt/ros/noetic/setup.bash && source \$WORKSPACE/devel/setup.bash && $2"
         }
+
+build_image(){
+	if [[ -z "$(docker images -q $2 2> /dev/null)" ]]
+	then
+		if [[ "$(docker manifest inspect $2 > /dev/null 2>&1 && echo yes || echo no)" == "no" ]]
+		then
+			$NRT_WS/scripts/docker-build.sh $1 $2 $3 $4 
+		else
+			docker pull $2
+		fi
+	fi
+}
 
 cd $NRT_WS
 
@@ -40,7 +52,7 @@ then
 	scripts/install.sh $2 $3 $4
 
 
-elif [[ "$1" == "setup" ]]
+elif [[ "$1" == "init" ]]
 then
 	if [[ ! -d ".ssh" ]]
 	then
@@ -48,21 +60,22 @@ then
 		read -p "Enter username for dockerhub: " name
 		echo "userEmail="$email >> $config_file 
 		echo "userName="$name >> $config_file 
-		if [[ ! -d "$HOME/.ssh" ]]
+		if [[ -d "$HOME/.ssh" && ! -L "${HOME}/.ssh" ]]
 		then
+			cp -r "$HOME/.ssh" $NRT_WS/.ssh
+		else
 			mkdir .ssh 
 			cd .ssh
 			ssh-keygen -q -t rsa -C "$email" -N "" -f id_rsa <<<y >/dev/null 2>&1
 			cd -
-		else
-			cp -r "$HOME/.ssh" $NRT_WS/.ssh
 		fi
 	fi
+	export $(grep -v '^#' $config_file | xargs)
 	echo "Github Email: $userEmail"
 	echo "Dockerhub ID: $userName"
 	if [[ "$2" == "docker" ]]
 	then
-		platform="linux/amd64,linux/arm/v7"
+		platform="linux/amd64,linux/arm64"
 		mode="base"
 		echo "$3"
 		if [[ -n "$3" ]]
@@ -73,21 +86,21 @@ then
 				echo "============ BUILDING Base Image ============="
 				image="$userName/nrt:base"
 				filepath="$NRT_WS/docker/base/"
-				$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
-				echo "============ BUILDING Base AMD64 Image ============="
-				image="$userName/nrt:amd64"
-				filepath="$NRT_WS/docker/base/amd64"
-				platform="linux/amd64"
-				$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
-				echo "============ BUILDING Base ARMv7 Image ============="
-				image="$userName/nrt:armv7"
-				filepath="$NRT_WS/docker/base/armv7"
-				platform="linux/arm/v7"
-				echo "============ BUILDING Base NRT Image ============="
-				image="$userName/nrt:dev"
+				build_image $platform $image $filepath
+				echo "============ BUILDING ROS Image ============="
+				image="$userName/nrt:ros"
+				filepath="$NRT_WS/docker/base/ros"
+				platform="linux/amd64,linux/arm64"
+				build_image $platform $image $filepath 
+				echo "============ BUILDING NRT Image ============="
+				image="$userName/nrt:$VERSION"
 				filepath="$NRT_WS/docker/nrt/"
-				platform="linux/amd64,linux/arm/v7"
-				$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
+				platform="linux/amd64,linux/arm64"
+				container_name="nrt_container"
+				build_image $platform $image $filepath 
+				$NRT_WS/scripts/start.sh "$NRT_WS" "$container_name" "$image"
+                iexec nrt_container "echo \"Starting Submodule Update\" && git submodule update --recursive --init"
+                iexec nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $3 $USER_EMAIL $USER_NAME"
 			elif [[ "$3" == "kalibr" ]]
 			then
 				echo "============ BUILDING Kalibr Image ============="
@@ -95,22 +108,18 @@ then
 				filepath="$NRT_WS/ext/calibration/kalibr/"
 				container_name="kalibr_container"
 				mode="kalibr"
-				$NRT_WS/scripts/docker-build.sh $platform $image $filepath "NRT_WS=$NRT_WS" 
+				build_image $platform $image $filepath "NRT_WS=$NRT_WS"
 			fi
-		else
-			echo "============ BUILDING Base Image ============="
-			image="$userName/nrt:base"
-			filepath="docker/base/"
-			$NRT_WS/scripts/docker-build.sh $platform $image $filepath 
 		fi
 	fi
 
 elif [[ "$1" == "up" ]]
 then
 	mode="ros"
+	export $(grep -v '^#' $config_file | xargs)
 	echo "username: $userName"
 	echo "email: $userEmail"
-	git submodule update --init --recursive
+	# git submodule update --init --recursive
 	if [[ -n "$2" ]]
 	then
 		

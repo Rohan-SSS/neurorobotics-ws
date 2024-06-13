@@ -95,68 +95,18 @@ RUN git clone https://github.com/vim/vim.git && cd vim && git checkout 6a950da &
 
 # Setup vim for development
 WORKDIR /root
-RUN mkdir -p /root/.vim/bundle 
-RUN cd /root/.vim/bundle && git clone https://github.com/VundleVim/Vundle.vim
+RUN mkdir -p /root/.vim/bundle && \
+	cd /root/.vim/bundle && \
+	git clone https://github.com/VundleVim/Vundle.vim && \
+	mkdir -p /root/.vim/colors
 COPY .vimrc /root/.vimrc
-RUN mkdir -p /root/.vim/colors
 COPY codedark.vim /root/.vim/colors/codedark.vim 
-RUN vim -c PluginInstall -c qall && ls
-RUN cd /root/.vim/bundle/ && rm -rf youcompleteme && git clone https://github.com/ycm-core/YouCompleteMe youcompleteme
-RUN python3 -m pip install regex
-RUN cd /root/.vim/bundle/youcompleteme && git submodule update --init --recursive
-RUN cd /root/.vim/bundle/youcompleteme/ && python3 ./install.py --force-sudo --clang-completer
-RUN cp /root/.vim/bundle/youcompleteme/third_party/ycmd/.ycm_extra_conf.py  /root/.vim/
-
-# setup keys
-RUN set -eux; \
-       key='C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654'; \
-       export GNUPGHOME="$(mktemp -d)"; \
-       gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "$key"; \
-       mkdir -p /usr/share/keyrings; \
-       gpg --batch --export "$key" > /usr/share/keyrings/ros2-latest-archive-keyring.gpg; \
-       gpgconf --kill all; \
-       rm -rf "$GNUPGHOME"
-
-# setup sources.list
-RUN echo "deb [ signed-by=/usr/share/keyrings/ros2-latest-archive-keyring.gpg ] http://packages.ros.org/ros2/ubuntu noble main" > /etc/apt/sources.list.d/ros2-latest.list
-
-# setup environment
-ENV LANG C.UTF-8
-ENV LC_ALL C.UTF-8
-ENV ROS_DISTRO humble
-
-# install bootstrap tools
-RUN apt-get update && apt-get install --no-install-recommends -y \
-    build-essential \
-    git \
-    python3-colcon-common-extensions \
-    python3-colcon-mixin \
-    python3-rosdep \
-    python3-setuptools \
-    python3-vcstool \
-    && rm -rf /var/lib/apt/lists/*
-
-# This is a workaround for pytest not found causing builds to fail
-# Following RUN statements tests for regression of https://github.com/ros2/ros2/issues/722
-RUN pip3 freeze | grep pytest \
-    && python3 -m pytest --version
-
-# bootstrap rosdep
-RUN rosdep init \
-    && rosdep update
-
-# setup colcon mixin and metadata
-RUN colcon mixin add default \
-      https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml && \
-    colcon mixin update && \
-    colcon metadata add default \
-      https://raw.githubusercontent.com/colcon/colcon-metadata-repository/master/index.yaml && \
-    colcon metadata update
-
-# setup entrypoint
-COPY ./ros_entrypoint.sh /
-RUN chmod +x /ros_entrypoint.sh
-
-
-ENTRYPOINT ["/ros_entrypoint.sh"]
-CMD ["bash"]
+RUN vim -c PluginInstall -c qall && ls && \
+	cd /root/.vim/bundle/ && \
+	rm -rf youcompleteme && \
+	git clone https://github.com/ycm-core/YouCompleteMe youcompleteme && \
+	python3 -m pip install regex && \
+	cd /root/.vim/bundle/youcompleteme && \
+	git submodule update --init --recursive && \
+	python3 ./install.py --force-sudo --clang-completer && \
+	cp /root/.vim/bundle/youcompleteme/third_party/ycmd/.ycm_extra_conf.py  /root/.vim/

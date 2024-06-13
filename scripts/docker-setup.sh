@@ -22,18 +22,19 @@ echo "in docker-setup.sh email: $2"
 echo "in docker-setup.sh username: $3"
 
 apply_safe_directory(){
-    echo "Applying Safe Directory command to folder: ${1}${2}"
+    echo "Applying Safe Directory command to folder: ${1}/${2}"
     git config --global --add safe.directory "${1}/${2}"
 }
 
 export -f apply_safe_directory
 git submodule init
+git submodule status | awk '{print $2}' | xargs -I {} bash -c 'apply_safe_directory "$PWD" "{}"'
 git submodule update --recursive
 git submodule status | awk '{print $2}' | xargs -I {} bash -c 'apply_safe_directory "$PWD" "{}"'
 cd ros_ws
 git submodule init
-git submodule update --recursive
 git submodule status | awk '{print $2}' | xargs -I {} bash -c 'apply_safe_directory "$PWD" "{}"'
+git submodule update --recursive
 cd ../
 
 
