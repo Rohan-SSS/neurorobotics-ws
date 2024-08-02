@@ -92,9 +92,14 @@ then
 				filepath="$NRT_WS/docker/base/ros"
 				platform="linux/amd64,linux/arm64"
 				build_image $platform $image $filepath 
-				echo "============ BUILDING NRT Image ============="
+				echo "============ BUILDING NRT Pangolin Image ============="
+				image="$userName/nrt:pangolin"
+				filepath="$NRT_WS/docker/nrt/pangolin"
+				platform="linux/amd64,linux/arm64"
+				build_image $platform $image $filepath 
+				echo "============ BUILDING NRT Camera Image ============="
 				image="$userName/nrt:$VERSION"
-				filepath="$NRT_WS/docker/nrt/"
+				filepath="$NRT_WS/docker/nrt/camera"
 				platform="linux/amd64,linux/arm64"
 				container_name="nrt_container"
 				build_image $platform $image $filepath 
@@ -125,7 +130,7 @@ then
 		if [[ "$2" == "nrt"  ]]
 		then
 			echo "=============== Initialising NRT Base Container ================"
-			$NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:0.0.1
+			$NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:$VERSION
 			iexec_ros nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2 $userEmail $userName" 
 			iexec_ros nrt_container "./scripts/build_ros_packages.sh"
 		elif [[ "$2" == "kalibr" ]]
@@ -153,6 +158,12 @@ then
 			echo "=========== BUILDING Packages ==========="
 			echo $PWD
 			iexec_ros nrt_container "./scripts/build_ros_packages.sh"
+		elif [[ "$2" == "docker" ]]
+		then
+			platform="linux/amd64,linux/arm64"
+			image="$3"
+			filepath="$4"
+			build_image $platform $image $filepath "NRT_WS=$NRT_WS"
 		fi
 	fi
 
@@ -169,98 +180,9 @@ then
 
 elif [[  "$1" == "start" ]]
 then
-	# djinn exec "cd ros_ws/src/ && ros2 pkg create --build-type ament_cmake Sensors" for creating ros2 packages
-	if [[ "$2" == "airsim" ]]
+	if [[ "$2" == "tello" ]]
 	then
-		if [[ "$3" == "AirSimNH" ]]
-		then
-			nohup $NRT_WS/envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$NRT_WS/config/settings-no-px4.json > $NRT_WS/airsimnh.log &
-		
-		elif [[ "$3" == "LandscapeMountain" ]]
-		then
-			nohup $NRT_WS/envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -renderoffscreen -settings=$NRT_WS/config/settings-no-px4.json > $NRT_WS/airsimmountain.log &
-		elif [[ "$3" == "ZhangJiajie" ]]
-		then
-			nohup $NRT_WS/envs/ZhangJiajie/LinuxNoEditor/ZhangJiajie.sh -renderoffscreen -settings=$NRT_WS/config/settings-no-px4.json > $NRT_WS/airsimmountain.log &
-		elif [[ "$3" == "TrapCam" ]]
-		then
-			nohup $NRT_WS/envs/TrapCam/LinuxNoEditor/TrapCam.sh -WINDOWED -ResX=640 -ResY=480 -settings=$NRT_WS/config/settings-no-px4.json > $NRT_WS/airsimtrap.log &
-		elif [[ "$3" == "Blocks" ]]
-		then
-			nohup $NRT_WS/envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -WINDOWED -ResX=640 -ResY=480 -settings=$NRT_WS/config/settings-no-px4.json > $NRT_WS/airsimblocks.log &
-		elif [[ "$3" == "Africa" ]]
-		then
-			echo "Starting Africa"
-			nohup $NRT_WS/envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh  -WINDOWED -ResX=640 -ResY=480 -settings=$NRT_WS/config/settings-africa.json > $NRT_WS/airsimafrica.log &
-		fi
-		sleep 5
-		last_run_sitl_env="$3"
-		
-		save_state last_run_sitl_env
-		if [[ "$DJINN_MODE" == "automation" ]]
-		then
-			iexec_ros nrt_container "cd ros_ws/ && source install/setup.bash && nohup ros2 run airsim_lib talker > /ws/airsim_survey_lib.log &"
-			save_state last_run_sitl_env
-		else
-			iexec_ros nrt_container "cd ros_ws/ && source install/setup.bash && ros2 run airsim_lib talker"
-			ps -ef | grep $last_run_sitl_env | grep -v grep | awk '{print $2}' | xargs -r kill -9
-			last_run_sitl_env=""
-			save_state last_run_sitl_env
-		fi
-
-	elif [[ "$2" == "sensors" ]]
-	then
-		launch_file="sensors_launch.py"
-		if [[ -n "$3" ]]
-		then
-			iexec_ros nrt_container "cd ros_ws && source install/setup.bash && ros2 launch sensors ${3}_launch.py"
-		else
-			iexec_ros nrt_container "cd ros_ws && source install/setup.bash && ros2 launch sensors sensors_launch.py"
-		fi
-	elif [[ "$2" == "calibration" ]]
-	then
-		echo "Starting Calibration Process"
-		iexec_kalibr kalibr_contaienr "cd /ws/ros_ws/kalibr_data/ && ln -s synced/infrared cam0"
-		iexec_kalibr kalibr_container "cd /ws/ros_ws/kalibr_data/ && ln -s synced/thermal cam1"
-		iexec_kalibr kalibr_container "cd /ws/ros_ws/kalibr_data/ && rosrun kalibr kalibr_bagcreater --folder ./ --output-bag nrt.bag"
-		iexec_kalibr kalibr_container "cd /ws/ros_ws/kalibr_data/ && rosrun kalibr kalibr_calibrate_cameras --bag nrt.bag --topics /cam0/image_raw /cam1/image_raw --models pinhole-radtan pinhole-radtan --target april_6x6.yaml"
-	elif [[ "$2" == "sitl" ]]
-	then
-		# echo "========== Starting UP QGC =========="	
-		# nohup $HOME/shreyas/QGroundControl.AppImage > $HOME/shreyas/qgc.log &
-		sleep 5
-		echo "========== Starting AIRSIM =========="
-		if [[ "$3" == "AirSimNH" ]]
-		then
-			nohup $NRT_WS/envs/AirSimNH/LinuxNoEditor/AirSimNH.sh -renderoffscreen -settings=$NRT_WS/config/settings.json > $NRT_WS/airsimnh.log &
-		elif [[ "$3" == "LandscapeMountain" ]]
-		then
-			nohup $NRT_WS/envs/LandscapeMountains/LinuxNoEditor/LandscapeMountains.sh -WINDOWED -ResX=640 -ResY=480 -settings=$NRT_WS/config/settings.json > $NRT_WS/airsimmountain.log &
-		elif [[ "$3" == "ZhangJiajie" ]]
-		then
-			nohup $NRT_WS/envs/ZhangJiajie/LinuxNoEditor/ZhangJiajie.sh -WINDOWED -ResX=640 -ResY=480 -settings=$NRT_WS/config/settings.json > $NRT_WS/airsimzhang.log &
-		elif [[ "$3" == "TrapCam" ]]
-		then
-			nohup $NRT_WS/envs/TrapCam/LinuxNoEditor/TrapCam.sh -WINDOWED -ResX=640 -ResY=480 -settings=$NRT_WS/config/settings-trap.json > $NRT_WS/airsimtrap.log &
-		elif [[ "$3" == "Blocks" ]]
-		then
-			nohup $NRT_WS/envs/LinuxBlocks1.8.1/LinuxNoEditor/Blocks.sh -renderoffscreen -settings=$NRT_WS/config/settings.json > $NRT_WS/airsimblocks.log &
-		elif [[ "$3" == "Africa" ]]
-		then
-			nohup $NRT_WS/envs/Africa_Savannah/LinuxNoEditor/Africa_001.sh -WINDOWED -ResX=640 -ResY=480  -settings=$NRT_WS/config/settings-africa.json >> $NRT_WS/airsimafrica.log &
-		fi
-		last_run_sitl_env="$3"
-		save_state last_run_sitl_env
-		# TODO Need to figure out softwares for simulation mention of BFX 
-		# Since we are working with both land robots and drones to test our algorithms it is important to have simulation environments for the same
-		# Different simulatin environments will be needed for each use case that is served
-		if [[ "$DJINN_MODE" == "automation" ]]
-		then
-			save_state last_run_sitl_env
-		else
-			last_run_sitl_env=""
-			save_state last_run_sitl_env
-		fi
+		iexec_ros nrt_container "source /ws/ros_ws/install/setup.bash && ros2 launch controllers tello_launch.py"
 	fi
 
 elif [[ $1 == "kill" ]]
