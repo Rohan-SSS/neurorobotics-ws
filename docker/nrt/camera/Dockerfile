@@ -3,7 +3,7 @@ FROM shandilya1998/nrt:pangoling
 WORKDIR /deps
 
 RUN apt-get update && apt-get install -y libepoxy-dev libjpeg-dev libtiff5-dev libpng-dev libcamera-tools libboost-dev openssl \
-	libgnutls28-dev libgnutls28-dev qtbase5-dev libqt5core5a libqt5gui5 libqt5widgets5 libcap-dev 
+	libgnutls28-dev libgnutls28-dev qtbase5-dev libqt5core5a libqt5gui5 libqt5widgets5 libcap-dev libasio-dev 
 
 RUN if [ "$(uname -m)" = "aarch64" ]; then \
 		cd /deps && \
@@ -29,6 +29,8 @@ RUN if [ "$(uname -m)" = "aarch64" ]; then \
 		python3 -m pip install rpi-libcamera rpi-kms picamera2; \
 	fi
 
+# TODO
+# May need to remove this as Python Tello SDK is no longer needed
 RUN python3 -m pip install av
 RUN git clone https://github.com/damiafuentes/DJITelloPy.git && \
 	cd DJITelloPy && \
