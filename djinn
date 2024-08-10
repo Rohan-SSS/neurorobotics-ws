@@ -103,7 +103,7 @@ then
 				platform="linux/amd64,linux/arm64"
 				container_name="nrt_container"
 				build_image $platform $image $filepath 
-				$NRT_WS/scripts/start.sh "$NRT_WS" "$container_name" "$image"
+				source $NRT_WS/scripts/start.sh "$NRT_WS" "$container_name" "$image"
                 iexec nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $3 $userEmail $userName"
 			elif [[ "$3" == "kalibr" ]]
 			then
@@ -130,16 +130,16 @@ then
 		if [[ "$2" == "nrt"  ]]
 		then
 			echo "=============== Initialising NRT Base Container ================"
-			$NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:$VERSION
+			source $NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:$VERSION
 			iexec_ros nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2 $userEmail $userName" 
 			iexec_ros nrt_container "./scripts/build_ros_packages.sh"
 		elif [[ "$2" == "kalibr" ]]
 		then
 			echo "============ Initialising Kalibr Container ============="
-			$NRT_WS/scripts/start.sh $NRT_WS kalibr_container shandilya1998/nrt:kalibr
+			source $NRT_WS/scripts/start.sh $NRT_WS kalibr_container shandilya1998/nrt:kalibr
 		fi
 	else
-		$NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:ros
+		source $NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:ros
 		iexec_ros nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2 $userEmail $userName" 
 		iexec_ros nrt_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
 	fi
@@ -235,4 +235,14 @@ elif [[ "$1" == "ps" ]]
 then
 	docker ps
 
+elif [[ "$1" == "search" ]]
+then
+	grep -inr --include \*.h \
+		--include \*.cpp \
+		--include \*.hpp \
+		--include \*.py \
+		--include \*CMakeLists.txt \
+		--include \*.sh \
+		--include \*package.xml "$2" \
+		--include $NRT_WS/djinn	-e "$3"
 fi

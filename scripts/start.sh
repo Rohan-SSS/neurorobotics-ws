@@ -9,8 +9,10 @@ docker run --rm -d -it -v $1:/ws/ \
 			-v ./.ssh:/root/.ssh \
 			-v /dev:/dev \
     		--device-cgroup-rule "c 81:* rmw" \
-    		--device-cgroup-rule "c 189:* rmw" \
-            -e DISPLAY=$DISPLAY \
+			--device-cgroup-rule "c 189:* rmw" \
+			--device /dev/vchiq \
+			-v /run/udev:/run/udev:ro \
+			-e DISPLAY=$DISPLAY \
             -e XAUTHORITY=$XAUTHORITY \
 			-e QT_GRAPHICSSYSTEM=native \
 			-v $XAUTH:$XAUTH:rw \
