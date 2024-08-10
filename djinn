@@ -163,7 +163,8 @@ then
 			platform="linux/amd64,linux/arm64"
 			image="$3"
 			filepath="$4"
-			build_image $platform $image $filepath "NRT_WS=$NRT_WS"
+			# build_image $platform $image $filepath "NRT_WS=$NRT_WS"
+			source $NRT_WS/scripts/docker-build.sh $platform $image $filepath "NRT_WS=$NRT_WS" 
 		fi
 	fi
 
