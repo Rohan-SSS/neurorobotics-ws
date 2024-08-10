@@ -58,6 +58,8 @@ then
 	then
 		read -p "Enter email address for github: " email
 		read -p "Enter username for dockerhub: " name
+		echo "VERSION=0.0.3" >> $config_file
+		echo "ROS_VERSION=\"humble\"" >> $config_file
 		echo "userEmail="$email >> $config_file 
 		echo "userName="$name >> $config_file 
 		if [[ -d "$HOME/.ssh" && ! -L "${HOME}/.ssh" ]]
