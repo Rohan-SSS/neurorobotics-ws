@@ -1,4 +1,4 @@
-FROM shandilya1998/nrt:pangoling
+FROM shandilya1998/nrt:pangolin
 
 WORKDIR /deps
 

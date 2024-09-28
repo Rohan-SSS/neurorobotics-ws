@@ -100,8 +100,14 @@ then
 				platform="linux/amd64,linux/arm64"
 				build_image $platform $image $filepath 
 				echo "============ BUILDING NRT Camera Image ============="
-				image="$userName/nrt:$VERSION"
+				image="$userName/nrt:camera"
 				filepath="$NRT_WS/docker/nrt/camera"
+				platform="linux/amd64,linux/arm64"
+				container_name="nrt_container"
+				build_image $platform $image $filepath 
+				echo "============ BUILDING NRT Camera Image ============="
+				image="$userName/nrt:$VERSION"
+				filepath="$NRT_WS/docker/nrt/imu"
 				platform="linux/amd64,linux/arm64"
 				container_name="nrt_container"
 				build_image $platform $image $filepath 
@@ -134,7 +140,7 @@ then
 			echo "=============== Initialising NRT Base Container ================"
 			source $NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:$VERSION
 			iexec_ros nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2 $userEmail $userName" 
-			iexec_ros nrt_container "./scripts/build_ros_packages.sh"
+			iexec_ros nrt_container "/ws/scripts/build_ros_packages.sh"
 		elif [[ "$2" == "kalibr" ]]
 		then
 			echo "============ Initialising Kalibr Container ============="
