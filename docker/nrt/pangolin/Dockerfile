@@ -33,6 +33,6 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
 	libgstreamer-plugins-base1.0-dev \
 	python3-jinja2 \
 	ninja-build && \
-	python3 -m pip install meson pybind11
+	python3 -m pip install pybind11
 
 WORKDIR /ws
