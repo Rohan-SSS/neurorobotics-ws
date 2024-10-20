@@ -43,7 +43,7 @@ git config --global user.email "$2"
 git config --global user.name "$3"
 git config --global core.editor vim
 git config commit.template /ws/.gitmessage
-cd $NRT_WS/ros_ws
+cd /ws/ros_ws
 git config commit.template /ws/ros_ws/.gitmessage
 
 echo ""

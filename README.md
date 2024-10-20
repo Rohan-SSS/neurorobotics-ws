@@ -1,13 +1,13 @@
 # Installing pre-equisites
 
-For docker setup we need docker, git and ssh. For non docker setup, we can do away with docker. Also, these scripts have been tested on Ubuntu 20.04.
+For docker based setup we need have docker, git and ssh on our system. And if you already have these on your system, You can directly jump to the [Docker NRT setup](#docker-nrt-setup). Also, These scripts have been tested on Ubuntu 20.04.
 
-**Run setup-first-time.sh with desired options**
+**Run this command with desired options**
 
 ```
-skynet-ws$ ./djinn install --docker --ssh --git
+$ ./djinn install --docker --ssh --git
 ```
-Add the generated ssh key to your github account. You may have to reboot to make docker work.
+[Add](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account) the generated ssh key to your github account . You may have to reboot to make docker work.
 
 
 # Docker NRT setup
@@ -17,17 +17,17 @@ pulls all repos and builds them. Tested for Ubuntu 20.04. **BFX and its related 
 
 To build Skynet only and Skynet-ROS Images and start their containers run:
 ```
-skynet-ws$ ./djinn init docker
+$ ./djinn init docker
 ```
 
 To build NRT only image and start the container:
 ```
-skynet-ws$ ./djinn init docker nrt
+$ ./djinn init docker nrt
 ```
 
 To build Kalibr docker image and start the container:
 ```
-skynet-ws$ ./djinn init docker kalibr
+$ ./djinn init docker kalibr
 ```
 
 # Initialising NRT Docker Container and building inside Docker Container
