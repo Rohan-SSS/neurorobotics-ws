@@ -27,12 +27,4 @@ RUN colcon mixin add default https://raw.githubusercontent.com/colcon/colcon-mix
 	colcon metadata add default https://raw.githubusercontent.com/colcon/colcon-metadata-repository/master/index.yaml && \
 	colcon metadata update
 
-RUN apt-get update && apt-get install --no-install-recommends -y \
-	ros-humble-libcamera \
-	ros-humble-camera-ros \
-	libgstreamer-plugins-base1.0-dev \
-	python3-jinja2 \
-	ninja-build && \
-	python3 -m pip install pybind11
-
 WORKDIR /ws

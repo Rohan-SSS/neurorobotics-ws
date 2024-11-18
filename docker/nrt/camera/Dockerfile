@@ -4,16 +4,18 @@ WORKDIR /deps
 
 RUN apt-get update && apt-get install -y libepoxy-dev libjpeg-dev libtiff5-dev libpng-dev libcamera-tools libboost-dev openssl \
 	libgnutls28-dev libgnutls28-dev qtbase5-dev libqt5core5a libqt5gui5 libqt5widgets5 libcap-dev libasio-dev && \
-	python3 -m pip install meson
+	python3 -m pip install meson jinja2 ninja pybind11
 
 # Raspberry Pi specific dependencies
 RUN if [ "$(uname -m)" = "aarch64" ]; then \
-		apt-get update && apt-get install -y libraspberrypi-bin v4l-utils; \
+		apt-get update && apt-get install -y libraspberrypi-bin v4l-utils libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio; \
+	elif [ "$(uname -m)" = "x86_64"]; then \
+		apt-get update && apt-get install -y ros-humble-libcamera ros-humble-camera-ros libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgstreamer-plugins-bad1.0-dev gstreamer1.0-plugins-base gstreamer1.0-plugins-good gstreamer1.0-plugins-bad gstreamer1.0-plugins-ugly gstreamer1.0-libav gstreamer1.0-tools gstreamer1.0-x gstreamer1.0-alsa gstreamer1.0-gl gstreamer1.0-gtk3 gstreamer1.0-qt5 gstreamer1.0-pulseaudio; \
 	fi
 
 RUN if [ "$(uname -m)" = "aarch64" ]; then \
 		cd /deps && \
-		git clone https://github.com/raspberrypi/libcamera.git && \
+		git clone https://github.com/raspberrypi/libcamera.git --branch v0.3.1+rpt20240906 && \
 		cd libcamera && \
 		meson setup build --buildtype=release -Dpipelines=rpi/vc4,rpi/pisp -Dipas=rpi/vc4,rpi/pisp -Dv4l2=true -Dgstreamer=enabled -Dtest=false -Dlc-compliance=disabled -Dcam=disabled -Dqcam=disabled -Ddocumentation=disabled -Dpycamera=enabled && \
 		ninja -C build install;\
