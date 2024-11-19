@@ -67,6 +67,7 @@ if [ "$install_docker" = true ]; then
     sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin -y
 
     sudo usermod -aG docker ${USER}
+    sudo chown 777 /var/run/docker.sock
 
     echo "If 'docker info' gives permission denied error, you may have to reboot OS. https://stackoverflow.com/questions/47854463/#comment109932432_52646981"
 fi

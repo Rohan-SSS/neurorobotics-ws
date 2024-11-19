@@ -12,19 +12,16 @@ RUN cmake .. && \
    	cmake --build . -j4 && \
 	cmake --install .
 
-RUN apt-get update && apt-get install --no-install-recommends -y \
-    python3-colcon-common-extensions \
-    python3-colcon-mixin \
-    python3-rosdep \
-    python3-vcstool && \
-	rm -rf /var/lib/apt/lists/* && \
-	c_rehash /etc/ssl/certs && \
-	rosdep init && rosdep update --rosdistro humble
+WORKDIR /deps
+RUN git clone --depth=1 --branch=v11.4.3 https://github.com/machinezone/IXWebSocket.git || true && \
+	cd IXWebSocket && \
+	mkdir -p build && \
+	cd build && \
+	cmake -DBUILD_SHARED_LIBS=ON -DUSE_ZLIB=1 -DUSE_TLS=1 -DUSE_WS=1 .. && \
+	make -j8 && \
+	make install
 
-
-RUN colcon mixin add default https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml && \
-	colcon mixin update && \
-	colcon metadata add default https://raw.githubusercontent.com/colcon/colcon-metadata-repository/master/index.yaml && \
-	colcon metadata update
 
 WORKDIR /ws
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["bash"]

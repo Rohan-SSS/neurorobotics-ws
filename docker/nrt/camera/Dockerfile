@@ -3,7 +3,7 @@ FROM shandilya1998/nrt:pangolin
 WORKDIR /deps
 
 RUN apt-get update && apt-get install -y libepoxy-dev libjpeg-dev libtiff5-dev libpng-dev libcamera-tools libboost-dev openssl \
-	libgnutls28-dev libgnutls28-dev qtbase5-dev libqt5core5a libqt5gui5 libqt5widgets5 libcap-dev libasio-dev && \
+	libgnutls28-dev libgnutls28-dev qtbase5-dev libqt5core5a libqt5gui5 libqt5widgets5 libcap-dev libasio-dev ninja-build && \
 	python3 -m pip install meson jinja2 ninja pybind11
 
 # Raspberry Pi specific dependencies
@@ -38,3 +38,5 @@ RUN if [ "$(uname -m)" = "aarch64" ]; then \
 	fi
 
 WORKDIR /ws
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["bash"]

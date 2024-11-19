@@ -58,7 +58,7 @@ then
 	then
 		read -p "Enter email address for github: " email
 		read -p "Enter username for dockerhub: " name
-		echo "VERSION=0.0.4" >> $config_file
+		echo "VERSION=0.0.5" >> $config_file
 		echo "ROS_VERSION=\"humble\"" >> $config_file
 		echo "userEmail="$email >> $config_file 
 		echo "userName="$name >> $config_file 
@@ -99,15 +99,9 @@ then
 				filepath="$NRT_WS/docker/nrt/pangolin"
 				platform="linux/amd64,linux/arm64"
 				build_image $platform $image $filepath 
-				echo "============ BUILDING NRT Camera Image ============="
-				image="$userName/nrt:camera"
-				filepath="$NRT_WS/docker/nrt/camera"
-				platform="linux/amd64,linux/arm64"
-				container_name="nrt_container"
-				build_image $platform $image $filepath 
-				echo "============ BUILDING NRT Camera Image ============="
+				echo "============ BUILDING NRT VERSION:$VERSION Image ============="
 				image="$userName/nrt:$VERSION"
-				filepath="$NRT_WS/docker/nrt/imu"
+				filepath="$NRT_WS/docker/nrt/camera"
 				platform="linux/amd64,linux/arm64"
 				container_name="nrt_container"
 				build_image $platform $image $filepath 
