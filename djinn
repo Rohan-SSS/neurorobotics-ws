@@ -34,15 +34,15 @@ iexec_kalibr(){
         }
 
 build_image(){
-	if [[ -z "$(docker images -q $2 2> /dev/null)" ]]
-	then
-		if [[ "$(docker manifest inspect $2 > /dev/null 2>&1 && echo yes || echo no)" == "no" ]]
-		then
+	# if [[ -z "$(docker images -q $2 2> /dev/null)" ]]
+	# then
+	# 	if [[ "$(docker manifest inspect $2 > /dev/null 2>&1 && echo yes || echo no)" == "no" ]]
+	# 	then
 			$NRT_WS/scripts/docker-build.sh $1 $2 $3 $4 
-		else
-			docker pull $2
-		fi
-	fi
+	# 	else
+	# 		docker pull $2
+	# 	fi
+	# fi
 }
 
 cd $NRT_WS
@@ -58,7 +58,7 @@ then
 	then
 		read -p "Enter email address for github: " email
 		read -p "Enter username for dockerhub: " name
-		echo "VERSION=0.0.5" >> $config_file
+		echo "VERSION=0.0.4" >> $config_file
 		echo "ROS_VERSION=\"humble\"" >> $config_file
 		echo "userEmail="$email >> $config_file 
 		echo "userName="$name >> $config_file 
