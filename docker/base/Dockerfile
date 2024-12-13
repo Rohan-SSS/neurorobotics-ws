@@ -80,7 +80,7 @@ WORKDIR /deps
 #     make install
 
 WORKDIR /deps
-RUN git clone https://github.com/vim/vim.git && cd vim && git checkout 6a950da && ./configure --with-features=huge \
+RUN git clone https://github.com/vim/vim.git && cd vim && git checkout  6cc3027 && ./configure --with-features=huge \
             --enable-multibyte \
             --enable-rubyinterp=yes \
             --enable-python3interp=yes \
@@ -90,7 +90,7 @@ RUN git clone https://github.com/vim/vim.git && cd vim && git checkout 6a950da &
             --enable-gui=gtk2 \
             --enable-cscope \
             --prefix=/usr/local && \
-		make VIMRUNTIMEDIR=/usr/local/share/vim/vim90 && \
+		make VIMRUNTIMEDIR=/usr/local/share/vim/vim91 && \
 		checkinstall -y
 
 # Setup vim for development
@@ -99,8 +99,8 @@ RUN mkdir -p /root/.vim/bundle && \
 	cd /root/.vim/bundle && \
 	git clone https://github.com/VundleVim/Vundle.vim && \
 	mkdir -p /root/.vim/colors
-COPY .vimrc /root/.vimrc
-COPY codedark.vim /root/.vim/colors/codedark.vim 
+COPY ./.vimrc /root/.vimrc
+COPY ./codedark.vim /root/.vim/colors/codedark.vim 
 RUN vim -c PluginInstall -c qall && ls && \
 	cd /root/.vim/bundle/ && \
 	rm -rf youcompleteme && \
