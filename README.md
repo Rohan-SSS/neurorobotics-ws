@@ -2,6 +2,12 @@
 
 For docker based setup we need have docker, git and ssh on our system. And if you already have these on your system, You can directly jump to the [Docker NRT setup](#docker-nrt-setup). Also, These scripts have been tested on Ubuntu 20.04.
 
+Set the following statements in your ~/.bashrc:
+```
+export NRT_WS=$HOME/neurorobotics-ws
+export PATH=$PATH:$NRT_WS
+```
+
 **Run this command with desired options**
 
 ```
