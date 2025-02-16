@@ -141,7 +141,7 @@ then
 			source $NRT_WS/scripts/start.sh $NRT_WS kalibr_container shandilya1998/nrt:kalibr
 		fi
 	else
-		source $NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:ros
+		source $NRT_WS/scripts/start.sh $NRT_WS nrt_container shandilya1998/nrt:$VERSION
 		iexec_ros nrt_container "ls && echo \"Starting Container Setup\" && /ws/scripts/docker-setup.sh $2 $userEmail $userName" 
 		iexec_ros nrt_container "./scripts/build.sh && ./scripts/build_ros_packages.sh && cd ros_ws && source install/local_setup.bash && cd .."
 	fi
